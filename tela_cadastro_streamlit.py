@@ -3,9 +3,16 @@ import mysql.connector
 
 # Função para limpar todos os campos
 def limpar_campos():
-    for key in st.session_state:
-        if key != 'id':
-            st.session_state[key] = ''
+    # Lista de todas as chaves no session_state que devem ser limpas
+    campos_para_limpar = [
+        'id', 'data', 'cliente', 'cod_cliente', 'motorista', 'placa',
+        'perfil_vei', 'modalidade', 'minuta_cvia', 'ot_viagem', 'cubagem',
+        'rota', 'valor_carga', 'descarga', 'adiantamento'
+    ]
+    
+    # Limpa os valores dos campos no session_state
+    for campo in campos_para_limpar:
+        st.session_state[campo] = ""  # Define o valor como vazio
 
 # Função para buscar dados no banco de dados
 def buscar_dados():
@@ -159,10 +166,20 @@ motorista = st.text_input("Motorista", key='motorista')
 placa = st.text_input("Placa", key='placa')
 
 # Campo: Perfil do Veículo (Combobox)
-perfil_vei = st.selectbox("Perfil do Veículo", ["Selecione uma opção","3/4", "TOCO", "TRUCK"], key='perfil_vei')
+perfil_vei = st.selectbox(
+    "Perfil do Veículo", 
+    options=["", "3/4", "TOCO", "TRUCK"],  # Adiciona uma opção vazia
+    key='perfil_vei',
+    index=0  # Nenhuma opção selecionada por padrão
+)
 
 # Campo: Modalidade (Combobox)
-modalidade = st.selectbox("Modalidade", ["Selecione uma opção","ABA", "VENDA"], key='modalidade')
+modalidade = st.selectbox(
+    "Modalidade", 
+    options=["", "ABA", "VENDA"],  # Adiciona uma opção vazia
+    key='modalidade',
+    index=0  # Nenhuma opção selecionada por padrão
+)
 
 # Campos: Minuta/CVia e OT Viagem (lado a lado)
 col5, col6 = st.columns(2)  # Divide a linha em duas colunas
