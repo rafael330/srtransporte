@@ -14,10 +14,12 @@ def buscar_dados():
         try:
             # Conectando ao banco de dados
             conn = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                password='@Kaclju2125.',
-                database='bd_srtransporte'
+                user='root',  # Substitua pelo usuário do MySQL
+                password='@Kaclju2125.',  # Substitua pela senha do MySQL
+                host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+                port=11658,  # Porta gerada pelo Ngrok
+                database='bd_srtransporte',  # Adicionei uma vírgula aqui
+                unix_socket=None  # Força a conexão TCP/IP
             )
             cursor = conn.cursor()
             
@@ -131,21 +133,24 @@ def submit_data():
 # Configurando a interface gráfica no Streamlit
 st.title("Cadastro de carregamento")
 
-# Campo: ID
-id_registro = st.text_input("ID", key='id')
-
-# Botão para buscar dados
-if st.button("Buscar"):
-    buscar_dados()
+# Campo: ID e Botão Buscar
+col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
+with col1:
+    id_registro = st.text_input("ID", key='id')
+with col2:
+    st.write("")  # Espaçamento para alinhar o botão
+    if st.button("Buscar"):
+        buscar_dados()
 
 # Campo: Data
 data = st.text_input("Data", key='data')
 
-# Campo: Cliente
-cliente = st.text_input("Cliente", key='cliente')
-
-# Campo: Código do Cliente
-cod_cliente = st.text_input("Código do Cliente", key='cod_cliente')
+# Campos: Cliente e Código do Cliente (lado a lado)
+col3, col4 = st.columns(2)  # Divide a linha em duas colunas
+with col3:
+    cliente = st.text_input("Cliente", key='cliente')
+with col4:
+    cod_cliente = st.text_input("Código do Cliente", key='cod_cliente')
 
 # Campo: Motorista
 motorista = st.text_input("Motorista", key='motorista')
@@ -154,16 +159,17 @@ motorista = st.text_input("Motorista", key='motorista')
 placa = st.text_input("Placa", key='placa')
 
 # Campo: Perfil do Veículo (Combobox)
-perfil_vei = st.selectbox("Perfil do Veículo", ["3/4", "TOCO", "TRUCK"], key='perfil_vei')
+perfil_vei = st.selectbox("Perfil do Veículo", ["Selecione uma opção","3/4", "TOCO", "TRUCK"], key='perfil_vei')
 
 # Campo: Modalidade (Combobox)
-modalidade = st.selectbox("Modalidade", ["ABA", "VENDA"], key='modalidade')
+modalidade = st.selectbox("Modalidade", ["Selecione uma opção","ABA", "VENDA"], key='modalidade')
 
-# Campo: Minuta/CVia
-minuta_cvia = st.text_input("Minuta/CVia", key='minuta_cvia')
-
-# Campo: OT Viagem
-ot_viagem = st.text_input("OT Viagem", key='ot_viagem')
+# Campos: Minuta/CVia e OT Viagem (lado a lado)
+col5, col6 = st.columns(2)  # Divide a linha em duas colunas
+with col5:
+    minuta_cvia = st.text_input("Minuta/CVia", key='minuta_cvia')
+with col6:
+    ot_viagem = st.text_input("OT Viagem", key='ot_viagem')
 
 # Campo: Cubagem
 cubagem = st.text_input("Cubagem", key='cubagem')
@@ -174,11 +180,12 @@ rota = st.text_input("Rota", key='rota')
 # Campo: Valor da Carga
 valor_carga = st.text_input("Valor da Carga", key='valor_carga')
 
-# Campo: Descarga
-descarga = st.text_input("Descarga", key='descarga')
-
-# Campo: Adiantamento
-adiantamento = st.text_input("Adiantamento", key='adiantamento')
+# Campos: Descarga e Adiantamento (lado a lado)
+col7, col8 = st.columns(2)  # Divide a linha em duas colunas
+with col7:
+    descarga = st.text_input("Descarga", key='descarga')
+with col8:
+    adiantamento = st.text_input("Adiantamento", key='adiantamento')
 
 # Botão: Enviar
 if st.button("Enviar"):
