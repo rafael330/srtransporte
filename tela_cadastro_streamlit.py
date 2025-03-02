@@ -3,29 +3,14 @@ import mysql.connector
 
 # Função para limpar todos os campos
 def limpar_campos():
-    # Redefine todos os valores no session_state
-    st.session_state['id'] = ""
-    st.session_state['data'] = ""
-    st.session_state['cliente'] = ""
-    st.session_state['cod_cliente'] = ""
-    st.session_state['motorista'] = ""
-    st.session_state['placa'] = ""
-    st.session_state['perfil_vei'] = ""
-    st.session_state['modalidade'] = ""
-    st.session_state['minuta_cvia'] = ""
-    st.session_state['ot_viagem'] = ""
-    st.session_state['cubagem'] = ""
-    st.session_state['rota'] = ""
-    st.session_state['valor_carga'] = ""
-    st.session_state['descarga'] = ""
-    st.session_state['adiantamento'] = ""
-    
-    # Recarrega a página para aplicar as alterações
-    st.experimental_rerun()
+    # Reinicializa o estado da aplicação
+    for key in st.session_state.keys():
+        if key != "limpar_campos":  # Mantém o estado do botão de limpar
+            st.session_state[key] = ""
 
 # Função para buscar dados no banco de dados
 def buscar_dados():
-    id_registro = st.session_state['id']
+    id_registro = st.session_state.get('id', '')
     if id_registro:
         try:
             # Conectando ao banco de dados
@@ -78,21 +63,21 @@ def buscar_dados():
 # Função para enviar dados (inserir ou atualizar)
 def submit_data():
     # Obtendo os valores dos campos
-    id_registro = st.session_state['id']
-    data = st.session_state['data']
-    cliente = st.session_state['cliente']
-    cod_cliente = st.session_state['cod_cliente']
-    motorista = st.session_state['motorista']
-    placa = st.session_state['placa']
-    perfil_vei = st.session_state['perfil_vei']
-    modalidade = st.session_state['modalidade']
-    minuta_cvia = st.session_state['minuta_cvia']
-    ot_viagem = st.session_state['ot_viagem']
-    cubagem = st.session_state['cubagem']
-    rota = st.session_state['rota']
-    valor_carga = st.session_state['valor_carga']
-    descarga = st.session_state['descarga']
-    adiantamento = st.session_state['adiantamento']
+    id_registro = st.session_state.get('id', '')
+    data = st.session_state.get('data', '')
+    cliente = st.session_state.get('cliente', '')
+    cod_cliente = st.session_state.get('cod_cliente', '')
+    motorista = st.session_state.get('motorista', '')
+    placa = st.session_state.get('placa', '')
+    perfil_vei = st.session_state.get('perfil_vei', '')
+    modalidade = st.session_state.get('modalidade', '')
+    minuta_cvia = st.session_state.get('minuta_cvia', '')
+    ot_viagem = st.session_state.get('ot_viagem', '')
+    cubagem = st.session_state.get('cubagem', '')
+    rota = st.session_state.get('rota', '')
+    valor_carga = st.session_state.get('valor_carga', '')
+    descarga = st.session_state.get('descarga', '')
+    adiantamento = st.session_state.get('adiantamento', '')
     
     # Verificando se todos os campos foram preenchidos
     if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rota and valor_carga and descarga and adiantamento:
