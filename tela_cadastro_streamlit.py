@@ -3,24 +3,16 @@ import mysql.connector
 
 # Função para limpar todos os campos
 def limpar_campos():
-    # Reinicializa o estado da aplicação
-    for key in st.session_state.keys():
-        if key == "limpar_campos":  # Mantém o estado do botão de limpar
-            id_registro = st.session_state.get('', '')
-            data = st.session_state.get('', '')
-            cliente = st.session_state.get('', '')
-            cod_cliente = st.session_state.get('', '')
-            motorista = st.session_state.get('', '')
-            placa = st.session_state.get('', '')
-            perfil_vei = st.session_state.get('', '')
-            modalidade = st.session_state.get('', '')
-            minuta_cvia = st.session_state.get('', '')
-            ot_viagem = st.session_state.get('', '')
-            cubagem = st.session_state.get('', '')
-            rota = st.session_state.get('', '')
-            valor_carga = st.session_state.get('', '')
-            descarga = st.session_state.get('', '')
-            adiantamento = st.session_state.get('', '')
+    # Lista de todas as chaves no session_state que devem ser limpas
+    campos_para_limpar = [
+        'id', 'data', 'cliente', 'cod_cliente', 'motorista', 'placa',
+        'perfil_vei', 'modalidade', 'minuta_cvia', 'ot_viagem', 'cubagem',
+        'rota', 'valor_carga', 'descarga', 'adiantamento'
+    ]
+    
+    # Limpa os valores dos campos no session_state
+    for campo in campos_para_limpar:
+        st.session_state[campo] = ""  # Define o valor como vazio
 
 # Função para buscar dados no banco de dados
 def buscar_dados():
