@@ -198,7 +198,7 @@ if st.session_state['opcao'] == "Consulta":
 
 # Tela de Novo Cadastro
 elif st.session_state['opcao'] == "Novo Cadastro":
-    st.title("Novo Cadastro de Lançamento")
+    st.title("Cadastro de carregamento")
     
     # Campo: ID e Botão Buscar
     col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
