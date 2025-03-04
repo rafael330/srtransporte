@@ -171,10 +171,10 @@ if 'opcao' not in st.session_state:
 
 # Configurando a barra lateral com botões
 st.sidebar.title("Menu")
-if st.sidebar.button("Consulta"):
-    st.session_state['opcao'] = "Consulta"
 if st.sidebar.button("Novo Cadastro"):
     st.session_state['opcao'] = "Novo Cadastro"
+if st.sidebar.button("Consulta"):
+    st.session_state['opcao'] = "Consulta"
 
 # Tela de Consulta
 if st.session_state['opcao'] == "Consulta":
