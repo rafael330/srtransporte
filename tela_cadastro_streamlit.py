@@ -50,7 +50,7 @@ def buscar_lancamento_por_id(id_registro):
                 user='root',  # Substitua pelo usuário do MySQL
                 password='@Kaclju2125.',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=11658,  # Porta gerada pelo Ngrok
+                port=19152,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte',  # Adicionei uma vírgula aqui
                 unix_socket=None  # Força a conexão TCP/IP
             )
