@@ -149,7 +149,6 @@ def submit_data():
             # Se for um novo registro, obter o ID gerado
             if not id_registro:
                 id_registro = cursor.lastrowid
-                st.session_state['id'] = id_registro
             
             cursor.close()
             conn.close()
@@ -159,9 +158,10 @@ def submit_data():
             
             # Limpando os campos após o envio
             st.session_state.clear()  # Limpa o session_state
-            st.rerun()  # Recarrega a página
-        except mysql.connector.Error as err:
-            st.error(f"Erro ao salvar dados: {err}")
+            st.session_state['id'] = id_registro  # Atualiza o ID no session_state
+            st.experimental_rerun()  # Recarrega a página
+        except Exception as e:
+            st.error(f"Erro ao salvar dados: {str(e)}")  # Exibe o erro completo
     else:
         st.warning("Por favor, preencha todos os campos.")
 
