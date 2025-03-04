@@ -11,15 +11,14 @@ def buscar_todos_lancamentos():
             password='@Kaclju2125.',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
             port=19152,  # Porta gerada pelo Ngrok
-            database='bd_srtransporte',  # Adicionei uma vírgula aqui
-            unix_socket=None  # Força a conexão TCP/IP
+            database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
         
         # Buscando todos os lançamentos no banco de dados
         query = """
             SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
-                   minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento
+                   minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete
             FROM tela_inicial
         """
         cursor.execute(query)
@@ -29,7 +28,7 @@ def buscar_todos_lancamentos():
         colunas = [
             'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'Placa', 'Perfil do Veículo', 
             'Modalidade', 'Minuta/CVia', 'OT Viagem', 'Cubagem', 'Rota', 'Valor da Carga', 
-            'Descarga', 'Adiantamento'
+            'Descarga', 'Adiantamento', 'Valor do Frete'
         ]
         df = pd.DataFrame(resultados, columns=colunas)
         
@@ -51,15 +50,14 @@ def buscar_lancamento_por_id(id_registro):
                 password='@Kaclju2125.',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
                 port=19152,  # Porta gerada pelo Ngrok
-                database='bd_srtransporte',  # Adicionei uma vírgula aqui
-                unix_socket=None  # Força a conexão TCP/IP
+                database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
             
             # Buscando o lançamento no banco de dados
             query = """
                 SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
-                       minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento
+                       minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial 
                 WHERE id = %s
             """
@@ -82,6 +80,7 @@ def buscar_lancamento_por_id(id_registro):
                 st.session_state['valor_carga'] = resultado[11]
                 st.session_state['descarga'] = resultado[12]
                 st.session_state['adiantamento'] = resultado[13]
+                st.session_state['valor_frete'] = resultado[14]
             else:
                 st.warning("Nenhum registro encontrado com esse ID.")
             
@@ -110,16 +109,18 @@ def submit_data():
     valor_carga = st.session_state.get('valor_carga', '')
     descarga = st.session_state.get('descarga', '')
     adiantamento = st.session_state.get('adiantamento', '')
+    valor_frete = st.session_state.get('valor_frete', '')
     
     # Verificando se todos os campos foram preenchidos
-    if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rota and valor_carga and descarga and adiantamento:
+    if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rota and valor_carga and descarga and adiantamento and valor_frete:
         try:
             # Conectando ao banco de dados
             conn = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                password='@Kaclju2125.',
-                database='bd_srtransporte'
+                user='root',  # Substitua pelo usuário do MySQL
+                password='@Kaclju2125.',  # Substitua pela senha do MySQL
+                host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+                port=19152,  # Porta gerada pelo Ngrok
+                database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
             
@@ -129,18 +130,18 @@ def submit_data():
                     UPDATE tela_inicial 
                     SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, placa = %s, perfil_vei = %s, 
                     modalidade = %s, minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rota = %s, 
-                    valor_carga = %s, descarga = %s, adiantamento = %s
+                    valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, id_registro)
+                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete, id_registro)
             else:
                 # Inserindo um novo registro
                 query = """
                     INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento)
+                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete)
             
             cursor.execute(query, values)
             conn.commit()
