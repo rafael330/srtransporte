@@ -166,24 +166,25 @@ def submit_data():
 
 # Configurando a barra lateral
 st.sidebar.title("Menu")
-opcao = st.sidebar.radio("Selecione uma opção:", ["Consulta", "Novo Cadastro"])
+opcao = st.sidebar.selectbox("Selecione uma opção:", ["Consulta", "Novo Cadastro"])
 
 # Tela de Consulta
 if opcao == "Consulta":
     st.title("Consulta de Lançamentos")
     
+    # Campo de consulta acima da tabela
+    id_filtro = st.text_input("Filtrar por ID")
+    
     # Busca todos os lançamentos
     df = buscar_todos_lancamentos()
     
+    # Filtra a tabela se um ID for fornecido
+    if id_filtro:
+        df = df[df['ID'] == int(id_filtro)]
+    
     # Exibe a tabela com todos os lançamentos
     if not df.empty:
-        st.dataframe(df)
-        
-        # Campo para filtrar por ID
-        id_filtro = st.text_input("Filtrar por ID")
-        if id_filtro:
-            df_filtrado = df[df['ID'] == int(id_filtro)]
-            st.dataframe(df_filtrado)
+        st.dataframe(df, height=500)  # Aumenta o tamanho da tabela
     else:
         st.warning("Nenhum lançamento encontrado.")
 
@@ -200,10 +201,33 @@ elif opcao == "Novo Cadastro":
         if st.button("Buscar"):
             buscar_lancamento_por_id(id_registro)
     
-    # Campos do formulário
+    # Campos lado a lado
+    col1, col2 = st.columns(2)
+    with col1:
+        cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
+    with col2:
+        cod_cliente = st.text_input("Código do Cliente", value=st.session_state.get('cod_cliente', ''), key='cod_cliente')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        minuta_cvia = st.text_input("Minuta/CVia", value=st.session_state.get('minuta_cvia', ''), key='minuta_cvia')
+    with col2:
+        ot_viagem = st.text_input("OT Viagem", value=st.session_state.get('ot_viagem', ''), key='ot_viagem')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
+    with col2:
+        valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
+    with col2:
+        adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
+    
+    # Outros campos
     data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
-    cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
-    cod_cliente = st.text_input("Código do Cliente", value=st.session_state.get('cod_cliente', ''), key='cod_cliente')
     motorista = st.text_input("Motorista", value=st.session_state.get('motorista', ''), key='motorista')
     placa = st.text_input("Placa", value=st.session_state.get('placa', ''), key='placa')
     perfil_vei = st.selectbox(
@@ -218,13 +242,8 @@ elif opcao == "Novo Cadastro":
         index=0 if not st.session_state.get('modalidade') else ["", "ABA", "VENDA"].index(st.session_state.get('modalidade')),
         key='modalidade'
     )
-    minuta_cvia = st.text_input("Minuta/CVia", value=st.session_state.get('minuta_cvia', ''), key='minuta_cvia')
-    ot_viagem = st.text_input("OT Viagem", value=st.session_state.get('ot_viagem', ''), key='ot_viagem')
     cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
     rota = st.text_input("Rota", value=st.session_state.get('rota', ''), key='rota')
-    valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
-    descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
-    adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
 
     # Botão: Enviar
     if st.button("Enviar"):
