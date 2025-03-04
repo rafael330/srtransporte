@@ -164,12 +164,19 @@ def submit_data():
     else:
         st.warning("Por favor, preencha todos os campos.")
 
-# Configurando a barra lateral
+# Configurando a barra lateral com botões
 st.sidebar.title("Menu")
-opcao = st.sidebar.selectbox("Selecione uma opção:", ["Consulta", "Novo Cadastro"])
+if st.sidebar.button("Consulta"):
+    st.session_state['opcao'] = "Consulta"
+if st.sidebar.button("Novo Cadastro"):
+    st.session_state['opcao'] = "Novo Cadastro"
+
+# Define a opção padrão se nenhuma for selecionada
+if 'opcao' not in st.session_state:
+    st.session_state['opcao'] = "Consulta"
 
 # Tela de Consulta
-if opcao == "Consulta":
+if st.session_state['opcao'] == "Consulta":
     st.title("Consulta de Lançamentos")
     
     # Campo de consulta acima da tabela
@@ -184,12 +191,12 @@ if opcao == "Consulta":
     
     # Exibe a tabela com todos os lançamentos
     if not df.empty:
-        st.dataframe(df, height=500)  # Aumenta o tamanho da tabela
+        st.dataframe(df, height=500, use_container_width=True)  # Aumenta o tamanho da tabela
     else:
         st.warning("Nenhum lançamento encontrado.")
 
 # Tela de Novo Cadastro
-elif opcao == "Novo Cadastro":
+elif st.session_state['opcao'] == "Novo Cadastro":
     st.title("Novo Cadastro de Lançamento")
     
     # Campo: ID e Botão Buscar
