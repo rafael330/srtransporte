@@ -1,14 +1,9 @@
 import streamlit as st
 import mysql.connector
 
-# Função para limpar todos os campos
-def limpar_campos():
-    # Reinicializa o session_state
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    
-    # Força a reexecução do script
-    st.experimental_rerun()
+# Inicializa a chave 'limpar_campos' no session_state
+if 'limpar_campos' not in st.session_state:
+    st.session_state['limpar_campos'] = False
 
 # Função para buscar dados no banco de dados
 def buscar_dados():
@@ -127,7 +122,8 @@ def submit_data():
             st.success("Dados salvos com sucesso!")
             
             # Limpando os campos após o envio
-            limpar_campos()
+            st.session_state.clear()  # Limpa o session_state
+            st.rerun()  # Recarrega a página
         except mysql.connector.Error as err:
             st.error(f"Erro ao salvar dados: {err}")
     else:
@@ -135,6 +131,12 @@ def submit_data():
 
 # Configurando a interface gráfica no Streamlit
 st.title("Cadastro de carregamento")
+
+# Se o botão "Limpar Campos" foi clicado, redefine todos os campos
+if st.session_state['limpar_campos']:
+    st.session_state.clear()
+    st.session_state['limpar_campos'] = False
+    st.rerun()
 
 # Campo: ID e Botão Buscar
 col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
@@ -206,4 +208,5 @@ if st.button("Enviar"):
 
 # Botão: Limpar Campos
 if st.button("Limpar Campos"):
-    limpar_campos()
+    st.session_state['limpar_campos'] = True
+    st.rerun()
