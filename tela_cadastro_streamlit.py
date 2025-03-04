@@ -1,13 +1,8 @@
 import streamlit as st
 import mysql.connector
 
-# Inicializa a chave 'limpar_campos' no session_state
-if 'limpar_campos' not in st.session_state:
-    st.session_state['limpar_campos'] = False
-
 # Função para buscar dados no banco de dados
-def buscar_dados():
-    id_registro = st.session_state.get('id', '')
+def buscar_dados(id_registro):
     if id_registro:
         try:
             # Conectando ao banco de dados
@@ -32,7 +27,7 @@ def buscar_dados():
             resultado = cursor.fetchone()
             
             if resultado:
-                # Preenchendo os campos com os dados encontrados
+                # Armazenando os dados encontrados no session_state
                 st.session_state['data'] = resultado[0]
                 st.session_state['cliente'] = resultado[1]
                 st.session_state['cod_cliente'] = resultado[2]
@@ -132,11 +127,9 @@ def submit_data():
 # Configurando a interface gráfica no Streamlit
 st.title("Cadastro de carregamento")
 
-# Se o botão "Limpar Campos" foi clicado, redefine todos os campos
-if st.session_state['limpar_campos']:
-    st.session_state.clear()
-    st.session_state['limpar_campos'] = False
-    st.rerun()
+# Inicializa o session_state se necessário
+if 'modo_consulta' not in st.session_state:
+    st.session_state['modo_consulta'] = False
 
 # Campo: ID e Botão Buscar
 col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
@@ -145,62 +138,35 @@ with col1:
 with col2:
     st.write("")  # Espaçamento para alinhar o botão
     if st.button("Buscar"):
-        buscar_dados()
+        buscar_dados(id_registro)
+        st.session_state['modo_consulta'] = True
 
-# Campo: Data
-data = st.text_input("Data", key='data')
-
-# Campos: Cliente e Código do Cliente (lado a lado)
-col3, col4 = st.columns(2)  # Divide a linha em duas colunas
-with col3:
-    cliente = st.text_input("Cliente", key='cliente')
-with col4:
-    cod_cliente = st.text_input("Código do Cliente", key='cod_cliente')
-
-# Campo: Motorista
-motorista = st.text_input("Motorista", key='motorista')
-
-# Campo: Placa
-placa = st.text_input("Placa", key='placa')
-
-# Campo: Perfil do Veículo (Combobox)
-perfil_vei = st.selectbox(
-    "Perfil do Veículo", 
-    options=["", "3/4", "TOCO", "TRUCK"],  # Adiciona uma opção vazia
-    key='perfil_vei',
-    index=0  # Nenhuma opção selecionada por padrão
-)
-
-# Campo: Modalidade (Combobox)
-modalidade = st.selectbox(
-    "Modalidade", 
-    options=["", "ABA", "VENDA"],  # Adiciona uma opção vazia
-    key='modalidade',
-    index=0  # Nenhuma opção selecionada por padrão
-)
-
-# Campos: Minuta/CVia e OT Viagem (lado a lado)
-col5, col6 = st.columns(2)  # Divide a linha em duas colunas
-with col5:
-    minuta_cvia = st.text_input("Minuta/CVia", key='minuta_cvia')
-with col6:
-    ot_viagem = st.text_input("OT Viagem", key='ot_viagem')
-
-# Campo: Cubagem
-cubagem = st.text_input("Cubagem", key='cubagem')
-
-# Campo: Rota
-rota = st.text_input("Rota", key='rota')
-
-# Campo: Valor da Carga
-valor_carga = st.text_input("Valor da Carga", key='valor_carga')
-
-# Campos: Descarga e Adiantamento (lado a lado)
-col7, col8 = st.columns(2)  # Divide a linha em duas colunas
-with col7:
-    descarga = st.text_input("Descarga", key='descarga')
-with col8:
-    adiantamento = st.text_input("Adiantamento", key='adiantamento')
+# Se estiver no modo de consulta, exibe os campos preenchidos
+if st.session_state['modo_consulta']:
+    data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
+    cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
+    cod_cliente = st.text_input("Código do Cliente", value=st.session_state.get('cod_cliente', ''), key='cod_cliente')
+    motorista = st.text_input("Motorista", value=st.session_state.get('motorista', ''), key='motorista')
+    placa = st.text_input("Placa", value=st.session_state.get('placa', ''), key='placa')
+    perfil_vei = st.selectbox(
+        "Perfil do Veículo", 
+        options=["", "3/4", "TOCO", "TRUCK"],  # Adiciona uma opção vazia
+        index=0 if not st.session_state.get('perfil_vei') else ["", "3/4", "TOCO", "TRUCK"].index(st.session_state.get('perfil_vei')),
+        key='perfil_vei'
+    )
+    modalidade = st.selectbox(
+        "Modalidade", 
+        options=["", "ABA", "VENDA"],  # Adiciona uma opção vazia
+        index=0 if not st.session_state.get('modalidade') else ["", "ABA", "VENDA"].index(st.session_state.get('modalidade')),
+        key='modalidade'
+    )
+    minuta_cvia = st.text_input("Minuta/CVia", value=st.session_state.get('minuta_cvia', ''), key='minuta_cvia')
+    ot_viagem = st.text_input("OT Viagem", value=st.session_state.get('ot_viagem', ''), key='ot_viagem')
+    cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
+    rota = st.text_input("Rota", value=st.session_state.get('rota', ''), key='rota')
+    valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
+    descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
+    adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
 
 # Botão: Enviar
 if st.button("Enviar"):
@@ -208,5 +174,6 @@ if st.button("Enviar"):
 
 # Botão: Limpar Campos
 if st.button("Limpar Campos"):
-    st.session_state['limpar_campos'] = True
-    st.rerun()
+    st.session_state.clear()  # Limpa o session_state
+    st.session_state['modo_consulta'] = False  # Volta ao modo de cadastro
+    st.rerun()  # Recarrega a página
