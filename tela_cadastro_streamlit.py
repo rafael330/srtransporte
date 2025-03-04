@@ -1,8 +1,48 @@
 import streamlit as st
 import mysql.connector
+import pandas as pd
 
-# Função para buscar dados no banco de dados
-def buscar_dados(id_registro):
+# Função para buscar todos os lançamentos no banco de dados
+def buscar_todos_lancamentos():
+    try:
+        # Conectando ao banco de dados
+        conn = mysql.connector.connect(
+            user='root',  # Substitua pelo usuário do MySQL
+            password='@Kaclju2125.',  # Substitua pela senha do MySQL
+            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+            port=11658,  # Porta gerada pelo Ngrok
+            database='bd_srtransporte',  # Adicionei uma vírgula aqui
+            unix_socket=None  # Força a conexão TCP/IP
+        )
+        cursor = conn.cursor()
+        
+        # Buscando todos os lançamentos no banco de dados
+        query = """
+            SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
+                   minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento
+            FROM tela_inicial
+        """
+        cursor.execute(query)
+        resultados = cursor.fetchall()
+        
+        # Convertendo os resultados em um DataFrame
+        colunas = [
+            'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'Placa', 'Perfil do Veículo', 
+            'Modalidade', 'Minuta/CVia', 'OT Viagem', 'Cubagem', 'Rota', 'Valor da Carga', 
+            'Descarga', 'Adiantamento'
+        ]
+        df = pd.DataFrame(resultados, columns=colunas)
+        
+        cursor.close()
+        conn.close()
+        
+        return df
+    except mysql.connector.Error as err:
+        st.error(f"Erro ao buscar dados: {err}")
+        return pd.DataFrame()
+
+# Função para buscar um lançamento pelo ID
+def buscar_lancamento_por_id(id_registro):
     if id_registro:
         try:
             # Conectando ao banco de dados
@@ -16,7 +56,7 @@ def buscar_dados(id_registro):
             )
             cursor = conn.cursor()
             
-            # Buscando os dados no banco de dados
+            # Buscando o lançamento no banco de dados
             query = """
                 SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
                        minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento
@@ -124,25 +164,43 @@ def submit_data():
     else:
         st.warning("Por favor, preencha todos os campos.")
 
-# Configurando a interface gráfica no Streamlit
-st.title("Cadastro de carregamento")
+# Configurando a barra lateral
+st.sidebar.title("Menu")
+opcao = st.sidebar.radio("Selecione uma opção:", ["Consulta", "Novo Cadastro"])
 
-# Inicializa o session_state se necessário
-if 'modo_consulta' not in st.session_state:
-    st.session_state['modo_consulta'] = False
+# Tela de Consulta
+if opcao == "Consulta":
+    st.title("Consulta de Lançamentos")
+    
+    # Busca todos os lançamentos
+    df = buscar_todos_lancamentos()
+    
+    # Exibe a tabela com todos os lançamentos
+    if not df.empty:
+        st.dataframe(df)
+        
+        # Campo para filtrar por ID
+        id_filtro = st.text_input("Filtrar por ID")
+        if id_filtro:
+            df_filtrado = df[df['ID'] == int(id_filtro)]
+            st.dataframe(df_filtrado)
+    else:
+        st.warning("Nenhum lançamento encontrado.")
 
-# Campo: ID e Botão Buscar
-col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
-with col1:
-    id_registro = st.text_input("ID", key='id')
-with col2:
-    st.write("")  # Espaçamento para alinhar o botão
-    if st.button("Buscar"):
-        buscar_dados(id_registro)
-        st.session_state['modo_consulta'] = True
-
-# Se estiver no modo de consulta, exibe os campos preenchidos
-if st.session_state['modo_consulta']:
+# Tela de Novo Cadastro
+elif opcao == "Novo Cadastro":
+    st.title("Novo Cadastro de Lançamento")
+    
+    # Campo: ID e Botão Buscar
+    col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
+    with col1:
+        id_registro = st.text_input("ID", key='id')
+    with col2:
+        st.write("")  # Espaçamento para alinhar o botão
+        if st.button("Buscar"):
+            buscar_lancamento_por_id(id_registro)
+    
+    # Campos do formulário
     data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
     cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
     cod_cliente = st.text_input("Código do Cliente", value=st.session_state.get('cod_cliente', ''), key='cod_cliente')
@@ -168,12 +226,6 @@ if st.session_state['modo_consulta']:
     descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
     adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
 
-# Botão: Enviar
-if st.button("Enviar"):
-    submit_data()
-
-# Botão: Limpar Campos
-if st.button("Limpar Campos"):
-    st.session_state.clear()  # Limpa o session_state
-    st.session_state['modo_consulta'] = False  # Volta ao modo de cadastro
-    st.rerun()  # Recarrega a página
+    # Botão: Enviar
+    if st.button("Enviar"):
+        submit_data()
