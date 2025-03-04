@@ -116,10 +116,12 @@ def submit_data():
         try:
             # Conectando ao banco de dados
             conn = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                password='@Kaclju2125.',
-                database='bd_srtransporte'
+                user='root',  # Substitua pelo usuário do MySQL
+                password='@Kaclju2125.',  # Substitua pela senha do MySQL
+                host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+                port=19152,  # Porta gerada pelo Ngrok
+                database='bd_srtransporte',  # Adicionei uma vírgula aqui
+                unix_socket=None  # Força a conexão TCP/IP
             )
             cursor = conn.cursor()
             
