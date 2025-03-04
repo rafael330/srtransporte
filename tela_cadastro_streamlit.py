@@ -166,10 +166,10 @@ def submit_data():
 
 # Configurando a barra lateral com botões
 st.sidebar.title("Menu")
-if st.sidebar.button("Consulta"):
-    st.session_state['opcao'] = "Consulta"
 if st.sidebar.button("Novo Cadastro"):
     st.session_state['opcao'] = "Novo Cadastro"
+if st.sidebar.button("Consulta"):
+    st.session_state['opcao'] = "Consulta"
 
 # Define a opção padrão se nenhuma for selecionada
 if 'opcao' not in st.session_state:
