@@ -116,12 +116,10 @@ def submit_data():
         try:
             # Conectando ao banco de dados
             conn = mysql.connector.connect(
-                user='root',  # Substitua pelo usuário do MySQL
-                password='@Kaclju2125.',  # Substitua pela senha do MySQL
-                host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19152,  # Porta gerada pelo Ngrok
-                database='bd_srtransporte',  # Adicionei uma vírgula aqui
-                unix_socket=None  # Força a conexão TCP/IP
+                host='localhost',
+                user='root',
+                password='@Kaclju2125.',
+                database='bd_srtransporte'
             )
             cursor = conn.cursor()
             
@@ -166,16 +164,16 @@ def submit_data():
     else:
         st.warning("Por favor, preencha todos os campos.")
 
-# Configurando a barra lateral com botões
-st.sidebar.title("Menu")
-if st.sidebar.button("Novo Cadastro"):
-    st.session_state['opcao'] = "Novo Cadastro"
-if st.sidebar.button("Consulta"):
-    st.session_state['opcao'] = "Consulta"
-
-# Define a opção padrão se nenhuma for selecionada
+# Inicializando o session_state
 if 'opcao' not in st.session_state:
     st.session_state['opcao'] = "Consulta"
+
+# Configurando a barra lateral com botões
+st.sidebar.title("Menu")
+if st.sidebar.button("Consulta"):
+    st.session_state['opcao'] = "Consulta"
+if st.sidebar.button("Novo Cadastro"):
+    st.session_state['opcao'] = "Novo Cadastro"
 
 # Tela de Consulta
 if st.session_state['opcao'] == "Consulta":
