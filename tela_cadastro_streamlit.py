@@ -3,7 +3,11 @@ import mysql.connector
 
 # Função para limpar todos os campos
 def limpar_campos():
-    # Recarrega a página para redefinir todos os campos
+    # Reinicializa o session_state
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    
+    # Força a reexecução do script
     st.experimental_rerun()
 
 # Função para buscar dados no banco de dados
