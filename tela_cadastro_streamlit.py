@@ -10,7 +10,7 @@ def buscar_todos_lancamentos():
             user='root',  # Substitua pelo usuário do MySQL
             password='@Kaclju2125.',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=19152,  # Porta gerada pelo Ngrok
+            port=17936,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -49,7 +49,7 @@ def buscar_lancamento_por_id(id_registro):
                 user='root',  # Substitua pelo usuário do MySQL
                 password='@Kaclju2125.',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19152,  # Porta gerada pelo Ngrok
+                port=17936,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
