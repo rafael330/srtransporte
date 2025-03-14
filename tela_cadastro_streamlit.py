@@ -22,11 +22,14 @@ def buscar_rotas_cidades():
         cursor.close()
         conn.close()
         
-        # Convertendo os resultados em uma lista de tuplas (rota, cidade)
-        return resultados
+        # Convertendo os resultados em listas únicas
+        rotas = list(set([rc[0] for rc in resultados]))  # Valores únicos para rotas
+        cidades = list(set([rc[1] for rc in resultados]))  # Valores únicos para cidades
+        
+        return rotas, cidades
     except mysql.connector.Error as err:
         st.error(f"Erro ao buscar rotas e cidades: {err}")
-        return []
+        return [], []
 
 # Função para buscar todos os lançamentos no banco de dados
 def buscar_todos_lancamentos():
@@ -40,6 +43,7 @@ def buscar_todos_lancamentos():
         )
         cursor = conn.cursor()
         
+        # Verifique se os nomes das colunas estão corretos (rot_1, cid_1, etc.)
         query = """
             SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
                    minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
@@ -263,22 +267,20 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
     
     # Buscar as rotas e cidades disponíveis
-    rotas_cidades = buscar_rotas_cidades()
-    rotas = [rc[0] for rc in rotas_cidades]
-    cidades = [rc[1] for rc in rotas_cidades]
+    rotas, cidades = buscar_rotas_cidades()
     
     # Campos de Rota e Cidade lado a lado
     col1, col2 = st.columns(2)
     with col1:
-        rot_1 = st.selectbox("Rota 1", options=rotas, index=rotas.index(st.session_state.get('rot_1', '')) if st.session_state.get('rot_1') in rotas else 0, key='rot_1')
+        rot_1 = st.selectbox("Rota 1", options=rotas, index=None, key='rot_1')
     with col2:
-        cid_1 = st.selectbox("Cidade 1", options=cidades, index=cidades.index(st.session_state.get('cid_1', '')) if st.session_state.get('cid_1') in cidades else 0, key='cid_1')
+        cid_1 = st.selectbox("Cidade 1", options=cidades, index=None, key='cid_1')
     
     col1, col2 = st.columns(2)
     with col1:
-        rot_2 = st.selectbox("Rota 2", options=rotas, index=rotas.index(st.session_state.get('rot_2', '')) if st.session_state.get('rot_2') in rotas else 0, key='rot_2')
+        rot_2 = st.selectbox("Rota 2", options=rotas, index=None, key='rot_2')
     with col2:
-        cid_2 = st.selectbox("Cidade 2", options=cidades, index=cidades.index(st.session_state.get('cid_2', '')) if st.session_state.get('cid_2') in cidades else 0, key='cid_2')
+        cid_2 = st.selectbox("Cidade 2", options=cidades, index=None, key='cid_2')
 
     if st.button("Enviar"):
         submit_data()
