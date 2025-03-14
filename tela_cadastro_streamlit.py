@@ -57,7 +57,7 @@ def buscar_lancamento_por_id(id_registro):
             # Buscando o lançamento no banco de dados
             query = """
                 SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
-                       minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete
+                       minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial 
                 WHERE id = %s
             """
