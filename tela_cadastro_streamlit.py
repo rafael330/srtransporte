@@ -18,7 +18,7 @@ def buscar_todos_lancamentos():
         # Buscando todos os lançamentos no banco de dados
         query = """
             SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
-                   minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete
+                   minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
             FROM tela_inicial
         """
         cursor.execute(query)
@@ -27,7 +27,7 @@ def buscar_todos_lancamentos():
         # Convertendo os resultados em um DataFrame
         colunas = [
             'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'Placa', 'Perfil do Veículo', 
-            'Modalidade', 'Minuta/CVia', 'OT Viagem', 'Cubagem', 'Rota', 'Valor da Carga', 
+            'Modalidade', 'Minuta/CVia', 'OT Viagem', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'Valor da Carga', 
             'Descarga', 'Adiantamento', 'Valor do Frete'
         ]
         df = pd.DataFrame(resultados, columns=colunas)
@@ -76,11 +76,14 @@ def buscar_lancamento_por_id(id_registro):
                 st.session_state['minuta_cvia'] = resultado[7]
                 st.session_state['ot_viagem'] = resultado[8]
                 st.session_state['cubagem'] = resultado[9]
-                st.session_state['rota'] = resultado[10]
-                st.session_state['valor_carga'] = resultado[11]
-                st.session_state['descarga'] = resultado[12]
-                st.session_state['adiantamento'] = resultado[13]
-                st.session_state['valor_frete'] = resultado[14]
+                st.session_state['rot_1'] = resultado[10]
+                st.session_state['rot_2'] = resultado[11]
+                st.session_state['cid_1'] = resultado[12]
+                st.session_state['cid_2'] = resultado[13]
+                st.session_state['valor_carga'] = resultado[15]
+                st.session_state['descarga'] = resultado[16]
+                st.session_state['adiantamento'] = resultado[17]
+                st.session_state['valor_frete'] = resultado[18]
             else:
                 st.warning("Nenhum registro encontrado com esse ID.")
             
@@ -105,7 +108,11 @@ def submit_data():
     minuta_cvia = st.session_state.get('minuta_cvia', '')
     ot_viagem = st.session_state.get('ot_viagem', '')
     cubagem = st.session_state.get('cubagem', '')
-    rota = st.session_state.get('rota', '')
+    cubagem = st.session_state.get('cubagem', '')
+    rot_1 = st.session_state.get('rot_1', '')
+    rot_2 = st.session_state.get('rot_2', '')
+    cid_1 = st.session_state.get('cid_1', '')
+    cid_2 = st.session_state.get('cid_2', '')
     valor_carga = st.session_state.get('valor_carga', '')
     descarga = st.session_state.get('descarga', '')
     adiantamento = st.session_state.get('adiantamento', '')
@@ -129,19 +136,19 @@ def submit_data():
                 query = """
                     UPDATE tela_inicial 
                     SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, placa = %s, perfil_vei = %s, 
-                    modalidade = %s, minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rota = %s, 
+                    modalidade = %s, minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, 
                     valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete, id_registro)
+                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
             else:
                 # Inserindo um novo registro
                 query = """
                     INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2. cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rota, valor_carga, descarga, adiantamento, valor_frete)
+                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete)
             
             cursor.execute(query, values)
             conn.commit()
@@ -251,7 +258,10 @@ elif st.session_state['opcao'] == "Novo Cadastro":
         key='modalidade'
     )
     cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
-    rota = st.text_input("Rota", value=st.session_state.get('rota', ''), key='rota')
+    rot_1 = st.text_input("Rota 1", value=st.session_state.get('rot_1', ''), key='rot_1')
+    rot_2 = st.text_input("Rota 2", value=st.session_state.get('rot_2', ''), key='rot_2')
+    cid_1 = st.text_input("Cidade 1", value=st.session_state.get('cid_1', ''), key='cid_1')
+    cid_2 = st.text_input("Cidade 1", value=st.session_state.get('cid_2', ''), key='cid_2')
 
     # Botão: Enviar
     if st.button("Enviar"):
