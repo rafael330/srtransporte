@@ -2,10 +2,9 @@ import streamlit as st
 import mysql.connector
 import pandas as pd
 
-# Função para buscar todos os lançamentos no banco de dados
-def buscar_todos_lancamentos():
+# Função para buscar todas as rotas e cidades da tabela cad_rota
+def buscar_rotas_cidades():
     try:
-        # Conectando ao banco de dados
         conn = mysql.connector.connect(
             user='root',  # Substitua pelo usuário do MySQL
             password='@Kaclju2125.',  # Substitua pela senha do MySQL
@@ -15,7 +14,32 @@ def buscar_todos_lancamentos():
         )
         cursor = conn.cursor()
         
-        # Buscando todos os lançamentos no banco de dados
+        # Buscando todas as rotas e cidades
+        query = "SELECT rota, cidade FROM cad_rota"
+        cursor.execute(query)
+        resultados = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        # Convertendo os resultados em uma lista de tuplas (rota, cidade)
+        return resultados
+    except mysql.connector.Error as err:
+        st.error(f"Erro ao buscar rotas e cidades: {err}")
+        return []
+
+# Função para buscar todos os lançamentos no banco de dados
+def buscar_todos_lancamentos():
+    try:
+        conn = mysql.connector.connect(
+            user='root',  # Substitua pelo usuário do MySQL
+            password='@Kaclju2125.',  # Substitua pela senha do MySQL
+            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+            port=19156,  # Porta gerada pelo Ngrok
+            database='bd_srtransporte'  # Nome do banco de dados
+        )
+        cursor = conn.cursor()
+        
         query = """
             SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
                    minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
@@ -24,7 +48,6 @@ def buscar_todos_lancamentos():
         cursor.execute(query)
         resultados = cursor.fetchall()
         
-        # Convertendo os resultados em um DataFrame
         colunas = [
             'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'Placa', 'Perfil do Veículo', 
             'Modalidade', 'Minuta/CVia', 'OT Viagem', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'Valor da Carga', 
@@ -44,7 +67,6 @@ def buscar_todos_lancamentos():
 def buscar_lancamento_por_id(id_registro):
     if id_registro:
         try:
-            # Conectando ao banco de dados
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
                 password='@Kaclju2125.',  # Substitua pela senha do MySQL
@@ -54,7 +76,6 @@ def buscar_lancamento_por_id(id_registro):
             )
             cursor = conn.cursor()
             
-            # Buscando o lançamento no banco de dados
             query = """
                 SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
                        minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
@@ -65,7 +86,6 @@ def buscar_lancamento_por_id(id_registro):
             resultado = cursor.fetchone()
             
             if resultado:
-                # Armazenando os dados encontrados no session_state
                 st.session_state['data'] = resultado[0]
                 st.session_state['cliente'] = resultado[1]
                 st.session_state['cod_cliente'] = resultado[2]
@@ -96,7 +116,6 @@ def buscar_lancamento_por_id(id_registro):
 
 # Função para enviar dados (inserir ou atualizar)
 def submit_data():
-    # Obtendo os valores dos campos
     id_registro = st.session_state.get('id', '')
     data = st.session_state.get('data', '')
     cliente = st.session_state.get('cliente', '')
@@ -108,7 +127,6 @@ def submit_data():
     minuta_cvia = st.session_state.get('minuta_cvia', '')
     ot_viagem = st.session_state.get('ot_viagem', '')
     cubagem = st.session_state.get('cubagem', '')
-    cubagem = st.session_state.get('cubagem', '')
     rot_1 = st.session_state.get('rot_1', '')
     rot_2 = st.session_state.get('rot_2', '')
     cid_1 = st.session_state.get('cid_1', '')
@@ -118,10 +136,8 @@ def submit_data():
     adiantamento = st.session_state.get('adiantamento', '')
     valor_frete = st.session_state.get('valor_frete', '')
     
-    # Verificando se todos os campos foram preenchidos
     if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rot_1 and rot_2 and cid_1 and cid_2 and valor_carga and descarga and adiantamento and valor_frete:
         try:
-            # Conectando ao banco de dados
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
                 password='@Kaclju2125.',  # Substitua pela senha do MySQL
@@ -131,7 +147,6 @@ def submit_data():
             )
             cursor = conn.cursor()
             
-            # Verificando se o ID já existe (edição)
             if id_registro:
                 query = """
                     UPDATE tela_inicial 
@@ -142,10 +157,9 @@ def submit_data():
                 """
                 values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
             else:
-                # Inserindo um novo registro
                 query = """
                     INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2. cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete) 
+                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete)
@@ -153,22 +167,18 @@ def submit_data():
             cursor.execute(query, values)
             conn.commit()
             
-            # Se for um novo registro, obter o ID gerado
             if not id_registro:
                 id_registro = cursor.lastrowid
             
             cursor.close()
             conn.close()
             
-            # Exibindo mensagem de sucesso
             st.success("Dados salvos com sucesso!")
-            
-            # Limpando os campos após o envio
-            st.session_state.clear()  # Limpa o session_state
-            st.session_state['id'] = id_registro  # Atualiza o ID no session_state
-            st.experimental_rerun()  # Recarrega a página
+            st.session_state.clear()
+            st.session_state['id'] = id_registro
+            st.experimental_rerun()
         except Exception as e:
-            st.error(f"Erro ao salvar dados: {str(e)}")  # Exibe o erro completo
+            st.error(f"Erro ao salvar dados: {str(e)}")
     else:
         st.warning("Por favor, preencha todos os campos.")
 
@@ -187,19 +197,15 @@ if st.sidebar.button("Consulta"):
 if st.session_state['opcao'] == "Consulta":
     st.title("Consulta de Lançamentos")
     
-    # Campo de consulta acima da tabela
     id_filtro = st.text_input("Filtrar por ID")
     
-    # Busca todos os lançamentos
     df = buscar_todos_lancamentos()
     
-    # Filtra a tabela se um ID for fornecido
     if id_filtro:
         df = df[df['ID'] == int(id_filtro)]
     
-    # Exibe a tabela com todos os lançamentos
     if not df.empty:
-        st.dataframe(df, height=500, use_container_width=True)  # Aumenta o tamanho da tabela
+        st.dataframe(df, height=500, use_container_width=True)
     else:
         st.warning("Nenhum lançamento encontrado.")
 
@@ -207,16 +213,14 @@ if st.session_state['opcao'] == "Consulta":
 elif st.session_state['opcao'] == "Novo Cadastro":
     st.title("Cadastro de carregamento")
     
-    # Campo: ID e Botão Buscar
-    col1, col2 = st.columns([4, 1])  # Divide a linha em duas colunas
+    col1, col2 = st.columns([4, 1])
     with col1:
         id_registro = st.text_input("ID", key='id')
     with col2:
-        st.write("")  # Espaçamento para alinhar o botão
+        st.write("")
         if st.button("Buscar"):
             buscar_lancamento_por_id(id_registro)
     
-    # Campos lado a lado
     col1, col2 = st.columns(2)
     with col1:
         cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
@@ -241,28 +245,40 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     with col2:
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
     
-    # Outros campos
     data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
     motorista = st.text_input("Motorista", value=st.session_state.get('motorista', ''), key='motorista')
     placa = st.text_input("Placa", value=st.session_state.get('placa', ''), key='placa')
     perfil_vei = st.selectbox(
         "Perfil do Veículo", 
-        options=["", "3/4", "TOCO", "TRUCK"],  # Adiciona uma opção vazia
+        options=["", "3/4", "TOCO", "TRUCK"],
         index=0 if not st.session_state.get('perfil_vei') else ["", "3/4", "TOCO", "TRUCK"].index(st.session_state.get('perfil_vei')),
         key='perfil_vei'
     )
     modalidade = st.selectbox(
         "Modalidade", 
-        options=["", "ABA", "VENDA"],  # Adiciona uma opção vazia
+        options=["", "ABA", "VENDA"],
         index=0 if not st.session_state.get('modalidade') else ["", "ABA", "VENDA"].index(st.session_state.get('modalidade')),
         key='modalidade'
     )
     cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
-    rot_1 = st.text_input("Rota 1", value=st.session_state.get('rot_1', ''), key='rot_1')
-    rot_2 = st.text_input("Rota 2", value=st.session_state.get('rot_2', ''), key='rot_2')
-    cid_1 = st.text_input("Cidade 1", value=st.session_state.get('cid_1', ''), key='cid_1')
-    cid_2 = st.text_input("Cidade 1", value=st.session_state.get('cid_2', ''), key='cid_2')
+    
+    # Buscar as rotas e cidades disponíveis
+    rotas_cidades = buscar_rotas_cidades()
+    rotas = [rc[0] for rc in rotas_cidades]
+    cidades = [rc[1] for rc in rotas_cidades]
+    
+    # Campos de Rota e Cidade lado a lado
+    col1, col2 = st.columns(2)
+    with col1:
+        rot_1 = st.selectbox("Rota 1", options=rotas, index=rotas.index(st.session_state.get('rot_1', '')) if st.session_state.get('rot_1') in rotas else 0, key='rot_1')
+    with col2:
+        cid_1 = st.selectbox("Cidade 1", options=cidades, index=cidades.index(st.session_state.get('cid_1', '')) if st.session_state.get('cid_1') in cidades else 0, key='cid_1')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        rot_2 = st.selectbox("Rota 2", options=rotas, index=rotas.index(st.session_state.get('rot_2', '')) if st.session_state.get('rot_2') in rotas else 0, key='rot_2')
+    with col2:
+        cid_2 = st.selectbox("Cidade 2", options=cidades, index=cidades.index(st.session_state.get('cid_2', '')) if st.session_state.get('cid_2') in cidades else 0, key='cid_2')
 
-    # Botão: Enviar
     if st.button("Enviar"):
         submit_data()
