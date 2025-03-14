@@ -119,7 +119,7 @@ def submit_data():
     valor_frete = st.session_state.get('valor_frete', '')
     
     # Verificando se todos os campos foram preenchidos
-    if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rota and valor_carga and descarga and adiantamento and valor_frete:
+    if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rot_1 and rot_2 and cid_1 and cid_2 and valor_carga and descarga and adiantamento and valor_frete:
         try:
             # Conectando ao banco de dados
             conn = mysql.connector.connect(
