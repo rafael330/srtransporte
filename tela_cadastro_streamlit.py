@@ -22,14 +22,11 @@ def buscar_rotas_cidades():
         cursor.close()
         conn.close()
         
-        # Convertendo os resultados em listas únicas
-        rotas = list(set([rc[0] for rc in resultados]))  # Valores únicos para rotas
-        cidades = list(set([rc[1] for rc in resultados]))  # Valores únicos para cidades
-        
-        return rotas, cidades
+        # Convertendo os resultados em uma lista de tuplas (rota, cidade)
+        return resultados
     except mysql.connector.Error as err:
         st.error(f"Erro ao buscar rotas e cidades: {err}")
-        return [], []
+        return []
 
 # Função para buscar todos os lançamentos no banco de dados
 def buscar_todos_lancamentos():
@@ -43,10 +40,9 @@ def buscar_todos_lancamentos():
         )
         cursor = conn.cursor()
         
-        # Verifique se os nomes das colunas estão corretos (rot_1, cid_1, etc.)
         query = """
-            SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
-                   minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
+            SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia,
+ ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
             FROM tela_inicial
         """
         cursor.execute(query)
@@ -54,7 +50,7 @@ def buscar_todos_lancamentos():
         
         colunas = [
             'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'Placa', 'Perfil do Veículo', 
-            'Modalidade', 'Minuta/CVia', 'OT Viagem', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'Valor da Carga', 
+            'Minuta/CVia', 'OT Viagem', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
             'Descarga', 'Adiantamento', 'Valor do Frete'
         ]
         df = pd.DataFrame(resultados, columns=colunas)
@@ -81,8 +77,8 @@ def buscar_lancamento_por_id(id_registro):
             cursor = conn.cursor()
             
             query = """
-                SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, 
-                       minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete
+                SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, 
+                       minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial 
                 WHERE id = %s
             """
@@ -95,15 +91,16 @@ def buscar_lancamento_por_id(id_registro):
                 st.session_state['cod_cliente'] = resultado[2]
                 st.session_state['motorista'] = resultado[3]
                 st.session_state['placa'] = resultado[4]
-                st.session_state['perfil_vei'] = resultado[5]
-                st.session_state['modalidade'] = resultado[6]
-                st.session_state['minuta_cvia'] = resultado[7]
-                st.session_state['ot_viagem'] = resultado[8]
-                st.session_state['cubagem'] = resultado[9]
-                st.session_state['rot_1'] = resultado[10]
-                st.session_state['rot_2'] = resultado[11]
-                st.session_state['cid_1'] = resultado[12]
-                st.session_state['cid_2'] = resultado[13]
+                st.session_state['perfil_vei'] = resultado[5]                
+                st.session_state['minuta_cvia'] = resultado[6]
+                st.session_state['ot_viagem'] = resultado[7]
+                st.session_state['cubagem'] = resultado[8]
+                st.session_state['rot_1'] = resultado[9]
+                st.session_state['rot_2'] = resultado[10]
+                st.session_state['cid_1'] = resultado[11]
+                st.session_state['cid_2'] = resultado[12]
+                st.session_state['mod_1'] = resultado[13]
+                st.session_state['mod_2'] = resultado[14]
                 st.session_state['valor_carga'] = resultado[15]
                 st.session_state['descarga'] = resultado[16]
                 st.session_state['adiantamento'] = resultado[17]
@@ -126,8 +123,7 @@ def submit_data():
     cod_cliente = st.session_state.get('cod_cliente', '')
     motorista = st.session_state.get('motorista', '')
     placa = st.session_state.get('placa', '')
-    perfil_vei = st.session_state.get('perfil_vei', '')
-    modalidade = st.session_state.get('modalidade', '')
+    perfil_vei = st.session_state.get('perfil_vei', '')    
     minuta_cvia = st.session_state.get('minuta_cvia', '')
     ot_viagem = st.session_state.get('ot_viagem', '')
     cubagem = st.session_state.get('cubagem', '')
@@ -135,12 +131,14 @@ def submit_data():
     rot_2 = st.session_state.get('rot_2', '')
     cid_1 = st.session_state.get('cid_1', '')
     cid_2 = st.session_state.get('cid_2', '')
+    mod_1 = st.session_state.get('mod_1', '')
+    mod_2 = st.session_state.get('mod_2', '')
     valor_carga = st.session_state.get('valor_carga', '')
     descarga = st.session_state.get('descarga', '')
     adiantamento = st.session_state.get('adiantamento', '')
     valor_frete = st.session_state.get('valor_frete', '')
     
-    if data and cliente and cod_cliente and motorista and placa and perfil_vei and modalidade and minuta_cvia and ot_viagem and cubagem and rot_1 and rot_2 and cid_1 and cid_2 and valor_carga and descarga and adiantamento and valor_frete:
+    if data and cliente and cod_cliente and motorista and placa and perfil_vei and minuta_cvia and ot_viagem and cubagem and rot_1 and rot_2 and cid_1 and cid_2 and mod_1 and mod_2 and valor_carga and descarga and adiantamento and valor_frete:
         try:
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
@@ -154,19 +152,19 @@ def submit_data():
             if id_registro:
                 query = """
                     UPDATE tela_inicial 
-                    SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, placa = %s, perfil_vei = %s, 
-                    modalidade = %s, minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, 
+                    SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, placa = %s, perfil_vei = %s
+                    , minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, mod_1 = %s, mod_2 = %s, cid_1 = %s, cid_2 = %s, 
                     valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
+                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
             else:
                 query = """
                     INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, modalidade, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, valor_carga, descarga, adiantamento, valor_frete)
+                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete)
             
             cursor.execute(query, values)
             conn.commit()
@@ -258,29 +256,28 @@ elif st.session_state['opcao'] == "Novo Cadastro":
         index=0 if not st.session_state.get('perfil_vei') else ["", "3/4", "TOCO", "TRUCK"].index(st.session_state.get('perfil_vei')),
         key='perfil_vei'
     )
-    modalidade = st.selectbox(
-        "Modalidade", 
-        options=["", "ABA", "VENDA"],
-        index=0 if not st.session_state.get('modalidade') else ["", "ABA", "VENDA"].index(st.session_state.get('modalidade')),
-        key='modalidade'
-    )
     cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
     
     # Buscar as rotas e cidades disponíveis
-    rotas, cidades = buscar_rotas_cidades()
+    rotas_cidades = buscar_rotas_cidades()
+    rotas = [rc[0] for rc in rotas_cidades]
+    cidades = [rc[1] for rc in rotas_cidades]
     
     # Campos de Rota e Cidade lado a lado
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        rot_1 = st.selectbox("Rota 1", options=rotas, index=None, key='rot_1')
+        rot_1 = st.selectbox("Rota 1", options=rotas, index=rotas.index(st.session_state.get('rot_1', '')) if st.session_state.get('rot_1') in rotas else 0, key='rot_1')
     with col2:
-        cid_1 = st.selectbox("Cidade 1", options=cidades, index=None, key='cid_1')
+        cid_1 = st.selectbox("Cidade 1", options=cidades, index=cidades.index(st.session_state.get('cid_1', '')) if st.session_state.get('cid_1') in cidades else 0, key='cid_1')
+    with col3:
+        mod_1 = st.selectbox("Modalidade 1", options=modalidades, index=modalidades.index(st.session_state.get('mod_1', '')) if st.session_state.get('mod_1') in modalidades else 0, key='mod_1')
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        rot_2 = st.selectbox("Rota 2", options=rotas, index=None, key='rot_2')
+        rot_2 = st.selectbox("Rota 2", options=rotas, index=rotas.index(st.session_state.get('rot_2', '')) if st.session_state.get('rot_2') in rotas else 0, key='rot_2')
     with col2:
-        cid_2 = st.selectbox("Cidade 2", options=cidades, index=None, key='cid_2')
-
+        cid_2 = st.selectbox("Cidade 2", options=cidades, index=cidades.index(st.session_state.get('cid_2', '')) if st.session_state.get('cid_2') in cidades else 0, key='cid_2')
+    with col3:
+            mod_2 = st.selectbox("Modelidade 2", options=modalidades, index=modalidades.index(st.session_state.get('mod_2', '')) if st.session_state.get('mod_2') in modalidades else 0, key='mod_2')
     if st.button("Enviar"):
         submit_data()
