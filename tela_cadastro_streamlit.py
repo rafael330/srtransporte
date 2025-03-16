@@ -319,3 +319,37 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             )
     with col2:
         if 'cid_2'
+                col1, col2, col3 = st.columns(3)
+    with col1:
+        if 'rot_2' in st.session_state:
+            rot_2 = st.text_input("Rota 2", value=st.session_state.get('rot_2', ''), key='rot_2')
+        else:
+            rot_2 = st.selectbox(
+                "Rota 2",
+                options=rotas,
+                index=0,
+                key='rot_2'
+            )
+    with col2:
+        if 'cid_2' in st.session_state:
+            cid_2 = st.text_input("Cidade 2", value=st.session_state.get('cid_2', ''), key='cid_2')
+        else:
+            cid_2 = st.selectbox(
+                "Cidade 2",
+                options=cidades,
+                index=0,
+                key='cid_2'
+            )
+    with col3:
+        if 'mod_2' in st.session_state:
+            mod_2 = st.text_input("Modalidade 2", value=st.session_state.get('mod_2', ''), key='mod_2')
+        else:
+            mod_2 = st.selectbox(
+                "Modalidade 2",
+                options=modalidades,
+                index=0,
+                key='mod_2'
+            )
+    
+    if st.button("Enviar"):
+        submit_data()
