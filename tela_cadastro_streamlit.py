@@ -318,19 +318,6 @@ elif st.session_state['opcao'] == "Novo Cadastro":
                 key='rot_2'
             )
     with col2:
-        if 'cid_2'
-                col1, col2, col3 = st.columns(3)
-    with col1:
-        if 'rot_2' in st.session_state:
-            rot_2 = st.text_input("Rota 2", value=st.session_state.get('rot_2', ''), key='rot_2')
-        else:
-            rot_2 = st.selectbox(
-                "Rota 2",
-                options=rotas,
-                index=0,
-                key='rot_2'
-            )
-    with col2:
         if 'cid_2' in st.session_state:
             cid_2 = st.text_input("Cidade 2", value=st.session_state.get('cid_2', ''), key='cid_2')
         else:
