@@ -276,49 +276,46 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     # Campos de Rota, Cidade e Modalidade lado a lado
     col1, col2, col3 = st.columns(3)
     with col1:
-        rot_1 = st.selectbox(
-            "Rota 1",
-            options=rotas,
-            index=safe_index(rotas, st.session_state.get('rot_1', '')),
-            key='rot_1'
-        )
+        if 'rot_1' in st.session_state:
+            rot_1 = st.text_input("Rota 1", value=st.session_state.get('rot_1', ''), key='rot_1')
+        else:
+            rot_1 = st.selectbox(
+                "Rota 1",
+                options=rotas,
+                index=0,
+                key='rot_1'
+            )
     with col2:
-        cid_1 = st.selectbox(
-            "Cidade 1",
-            options=cidades,
-            index=safe_index(cidades, st.session_state.get('cid_1', '')),
-            key='cid_1'
-        )
+        if 'cid_1' in st.session_state:
+            cid_1 = st.text_input("Cidade 1", value=st.session_state.get('cid_1', ''), key='cid_1')
+        else:
+            cid_1 = st.selectbox(
+                "Cidade 1",
+                options=cidades,
+                index=0,
+                key='cid_1'
+            )
     with col3:
-        mod_1 = st.selectbox(
-            "Modalidade 1",
-            options=modalidades,
-            index=safe_index(modalidades, st.session_state.get('mod_1', '')),
-            key='mod_1'
-        )
+        if 'mod_1' in st.session_state:
+            mod_1 = st.text_input("Modalidade 1", value=st.session_state.get('mod_1', ''), key='mod_1')
+        else:
+            mod_1 = st.selectbox(
+                "Modalidade 1",
+                options=modalidades,
+                index=0,
+                key='mod_1'
+            )
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        rot_2 = st.selectbox(
-            "Rota 2",
-            options=rotas,
-            index=safe_index(rotas, st.session_state.get('rot_2', '')),
-            key='rot_2'
-        )
+        if 'rot_2' in st.session_state:
+            rot_2 = st.text_input("Rota 2", value=st.session_state.get('rot_2', ''), key='rot_2')
+        else:
+            rot_2 = st.selectbox(
+                "Rota 2",
+                options=rotas,
+                index=0,
+                key='rot_2'
+            )
     with col2:
-        cid_2 = st.selectbox(
-            "Cidade 2",
-            options=cidades,
-            index=safe_index(cidades, st.session_state.get('cid_2', '')),
-            key='cid_2'
-        )
-    with col3:
-        mod_2 = st.selectbox(
-            "Modalidade 2",
-            options=modalidades,
-            index=safe_index(modalidades, st.session_state.get('mod_2', '')),
-            key='mod_2'
-        )
-    
-    if st.button("Enviar"):
-        submit_data()
+        if 'cid_2'
