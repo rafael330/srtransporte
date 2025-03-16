@@ -138,7 +138,15 @@ def submit_data():
     adiantamento = st.session_state.get('adiantamento', '')
     valor_frete = st.session_state.get('valor_frete', '')
     
-    if data and cliente and cod_cliente and motorista and placa and perfil_vei and minuta_cvia and ot_viagem and cubagem and rot_1 and rot_2 and cid_1 and cid_2 and mod_1 and mod_2 and valor_carga and descarga and adiantamento and valor_frete:
+    # Verificando se os campos de rota, cidade e modalidade estão vazios
+    rot_1 = rot_1 if rot_1 else None
+    rot_2 = rot_2 if rot_2 else None
+    cid_1 = cid_1 if cid_1 else None
+    cid_2 = cid_2 if cid_2 else None
+    mod_1 = mod_1 if mod_1 else None
+    mod_2 = mod_2 if mod_2 else None
+    
+    if data and cliente and cod_cliente and motorista and placa and perfil_vei and minuta_cvia and ot_viagem and cubagem and valor_carga and descarga and adiantamento and valor_frete:
         try:
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
@@ -153,8 +161,7 @@ def submit_data():
                 query = """
                     UPDATE tela_inicial 
                     SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, placa = %s, perfil_vei = %s
-                    , minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, mod_1 = %s, mod_2 = %s, cid_1 = %s, cid_2 = %s, 
-                    valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                    , minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
                 values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
@@ -276,67 +283,49 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     # Campos de Rota, Cidade e Modalidade lado a lado
     col1, col2, col3 = st.columns(3)
     with col1:
-        if 'rot_1' in st.session_state:
-            rot_1 = st.text_input("Rota 1", value=st.session_state.get('rot_1', ''), key='rot_1')
-        else:
-            rot_1 = st.selectbox(
-                "Rota 1",
-                options=rotas,
-                index=0,  # Inicia com o primeiro item (vazio)
-                key='rot_1'
-            )
+        rot_1 = st.selectbox(
+            "Rota 1",
+            options=rotas,
+            index=0,  # Inicia com o primeiro item (vazio)
+            key='rot_1'
+        )
     with col2:
-        if 'cid_1' in st.session_state:
-            cid_1 = st.text_input("Cidade 1", value=st.session_state.get('cid_1', ''), key='cid_1')
-        else:
-            cid_1 = st.selectbox(
-                "Cidade 1",
-                options=cidades,
-                index=0,  # Inicia com o primeiro item (vazio)
-                key='cid_1'
-            )
+        cid_1 = st.selectbox(
+            "Cidade 1",
+            options=cidades,
+            index=0,  # Inicia com o primeiro item (vazio)
+            key='cid_1'
+        )
     with col3:
-        if 'mod_1' in st.session_state:
-            mod_1 = st.text_input("Modalidade 1", value=st.session_state.get('mod_1', ''), key='mod_1')
-        else:
-            mod_1 = st.selectbox(
-                "Modalidade 1",
-                options=modalidades,
-                index=0,  # Inicia com o primeiro item (vazio)
-                key='mod_1'
-            )
+        mod_1 = st.selectbox(
+            "Modalidade 1",
+            options=modalidades,
+            index=0,  # Inicia com o primeiro item (vazio)
+            key='mod_1'
+        )
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        if 'rot_2' in st.session_state:
-            rot_2 = st.text_input("Rota 2", value=st.session_state.get('rot_2', ''), key='rot_2')
-        else:
-            rot_2 = st.selectbox(
-                "Rota 2",
-                options=rotas,
-                index=0,  # Inicia com o primeiro item (vazio)
-                key='rot_2'
-            )
+        rot_2 = st.selectbox(
+            "Rota 2",
+            options=rotas,
+            index=0,  # Inicia com o primeiro item (vazio)
+            key='rot_2'
+        )
     with col2:
-        if 'cid_2' in st.session_state:
-            cid_2 = st.text_input("Cidade 2", value=st.session_state.get('cid_2', ''), key='cid_2')
-        else:
-            cid_2 = st.selectbox(
-                "Cidade 2",
-                options=cidades,
-                index=0,  # Inicia com o primeiro item (vazio)
-                key='cid_2'
-            )
+        cid_2 = st.selectbox(
+            "Cidade 2",
+            options=cidades,
+            index=0,  # Inicia com o primeiro item (vazio)
+            key='cid_2'
+        )
     with col3:
-        if 'mod_2' in st.session_state:
-            mod_2 = st.text_input("Modalidade 2", value=st.session_state.get('mod_2', ''), key='mod_2')
-        else:
-            mod_2 = st.selectbox(
-                "Modalidade 2",
-                options=modalidades,
-                index=0,  # Inicia com o primeiro item (vazio)
-                key='mod_2'
-            )
+        mod_2 = st.selectbox(
+            "Modalidade 2",
+            options=modalidades,
+            index=0,  # Inicia com o primeiro item (vazio)
+            key='mod_2'
+        )
     
     if st.button("Enviar"):
         submit_data()
