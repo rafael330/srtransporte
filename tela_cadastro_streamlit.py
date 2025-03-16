@@ -282,7 +282,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             rot_1 = st.selectbox(
                 "Rota 1",
                 options=rotas,
-                index=0,
+                index=0,  # Inicia com o primeiro item (vazio)
                 key='rot_1'
             )
     with col2:
@@ -292,7 +292,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             cid_1 = st.selectbox(
                 "Cidade 1",
                 options=cidades,
-                index=0,
+                index=0,  # Inicia com o primeiro item (vazio)
                 key='cid_1'
             )
     with col3:
@@ -302,7 +302,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             mod_1 = st.selectbox(
                 "Modalidade 1",
                 options=modalidades,
-                index=0,
+                index=0,  # Inicia com o primeiro item (vazio)
                 key='mod_1'
             )
     
@@ -314,7 +314,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             rot_2 = st.selectbox(
                 "Rota 2",
                 options=rotas,
-                index=0,
+                index=0,  # Inicia com o primeiro item (vazio)
                 key='rot_2'
             )
     with col2:
@@ -324,7 +324,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             cid_2 = st.selectbox(
                 "Cidade 2",
                 options=cidades,
-                index=0,
+                index=0,  # Inicia com o primeiro item (vazio)
                 key='cid_2'
             )
     with col3:
@@ -334,7 +334,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             mod_2 = st.selectbox(
                 "Modalidade 2",
                 options=modalidades,
-                index=0,
+                index=0,  # Inicia com o primeiro item (vazio)
                 key='mod_2'
             )
     
