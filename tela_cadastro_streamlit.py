@@ -260,11 +260,11 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     
     # Buscar as rotas e cidades disponíveis
     rotas_cidades = buscar_rotas_cidades()
-    rotas = [rc[0] for rc in rotas_cidades]
-    cidades = [rc[1] for rc in rotas_cidades]
+    rotas = list(set([rc[0] for rc in rotas_cidades]))  # Valores únicos para rotas
+    cidades = list(set([rc[1] for rc in rotas_cidades]))  # Valores únicos para cidades
     
     # Definir as modalidades
-    modalidades = ["", "Modalidade A", "Modalidade B", "Modalidade C"]  # Substitua pelas modalidades reais
+    modalidades = ["", "VENDA", "ABA"]  # Opções de modalidade
     
     # Campos de Rota, Cidade e Modalidade lado a lado
     col1, col2, col3 = st.columns(3)
