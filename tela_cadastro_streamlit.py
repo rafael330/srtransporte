@@ -278,29 +278,29 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     cidades = list(set([rc[1] for rc in rotas_cidades]))  # Valores únicos para cidades
     
     # Definir as modalidades
-    modalidades = ["", "VENDA", "ABA"]  # Opções de modalidade
+    modalidades = ["VENDA", "ABA"]  # Opções de modalidade
     
     # Campos de Rota, Cidade e Modalidade lado a lado
     col1, col2, col3 = st.columns(3)
     with col1:
         rot_1 = st.selectbox(
             "Rota 1",
-            options=rotas,
-            index=0,  # Inicia com o primeiro item (vazio)
+            options=[""] + rotas,  # Adiciona uma opção vazia no início
+            index=0,  # Inicia com a opção vazia
             key='rot_1'
         )
     with col2:
         cid_1 = st.selectbox(
             "Cidade 1",
-            options=cidades,
-            index=0,  # Inicia com o primeiro item (vazio)
+            options=[""] + cidades,  # Adiciona uma opção vazia no início
+            index=0,  # Inicia com a opção vazia
             key='cid_1'
         )
     with col3:
         mod_1 = st.selectbox(
             "Modalidade 1",
-            options=modalidades,
-            index=0,  # Inicia com o primeiro item (vazio)
+            options=[""] + modalidades,  # Adiciona uma opção vazia no início
+            index=0,  # Inicia com a opção vazia
             key='mod_1'
         )
     
@@ -308,22 +308,22 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     with col1:
         rot_2 = st.selectbox(
             "Rota 2",
-            options=rotas,
-            index=0,  # Inicia com o primeiro item (vazio)
+            options=[""] + rotas,  # Adiciona uma opção vazia no início
+            index=0,  # Inicia com a opção vazia
             key='rot_2'
         )
     with col2:
         cid_2 = st.selectbox(
             "Cidade 2",
-            options=cidades,
-            index=0,  # Inicia com o primeiro item (vazio)
+            options=[""] + cidades,  # Adiciona uma opção vazia no início
+            index=0,  # Inicia com a opção vazia
             key='cid_2'
         )
     with col3:
         mod_2 = st.selectbox(
             "Modalidade 2",
-            options=modalidades,
-            index=0,  # Inicia com o primeiro item (vazio)
+            options=[""] + modalidades,  # Adiciona uma opção vazia no início
+            index=0,  # Inicia com a opção vazia
             key='mod_2'
         )
     
