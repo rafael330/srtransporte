@@ -28,6 +28,32 @@ def buscar_rotas_cidades():
         st.error(f"Erro ao buscar rotas e cidades: {err}")
         return []
 
+# Função para buscar todos os motoristas e seus CPFs da tabela cad_mot
+def buscar_motoristas():
+    try:
+        conn = mysql.connector.connect(
+            user='root',  # Substitua pelo usuário do MySQL
+            password='@Kaclju2125.',  # Substitua pela senha do MySQL
+            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+            port=19156,  # Porta gerada pelo Ngrok
+            database='bd_srtransporte'  # Nome do banco de dados
+        )
+        cursor = conn.cursor()
+        
+        # Buscando todos os motoristas e seus CPFs
+        query = "SELECT nome, cpf FROM cad_mot"
+        cursor.execute(query)
+        resultados = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        # Convertendo os resultados em um dicionário {nome: cpf}
+        return {nome: cpf for nome, cpf in resultados}
+    except mysql.connector.Error as err:
+        st.error(f"Erro ao buscar motoristas: {err}")
+        return {}
+
 # Função para buscar todos os lançamentos no banco de dados
 def buscar_todos_lancamentos():
     try:
@@ -41,7 +67,7 @@ def buscar_todos_lancamentos():
         cursor = conn.cursor()
         
         query = """
-            SELECT id, data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia,
+            SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia,
                    ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
             FROM tela_inicial
         """
@@ -49,7 +75,7 @@ def buscar_todos_lancamentos():
         resultados = cursor.fetchall()
         
         colunas = [
-            'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'Placa', 'Perfil do Veículo', 
+            'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
             'Minuta/CVia', 'OT Viagem', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
             'Descarga', 'Adiantamento', 'Valor do Frete'
         ]
@@ -77,7 +103,7 @@ def buscar_lancamento_por_id(id_registro):
             cursor = conn.cursor()
             
             query = """
-                SELECT data, cliente, cod_cliente, motorista, placa, perfil_vei, 
+                SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
                        minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial 
                 WHERE id = %s
@@ -90,21 +116,22 @@ def buscar_lancamento_por_id(id_registro):
                 st.session_state['cliente'] = resultado[1]
                 st.session_state['cod_cliente'] = resultado[2]
                 st.session_state['motorista'] = resultado[3]
-                st.session_state['placa'] = resultado[4]
-                st.session_state['perfil_vei'] = resultado[5]                
-                st.session_state['minuta_cvia'] = resultado[6]
-                st.session_state['ot_viagem'] = resultado[7]
-                st.session_state['cubagem'] = resultado[8]
-                st.session_state['rot_1'] = resultado[9]
-                st.session_state['rot_2'] = resultado[10]
-                st.session_state['cid_1'] = resultado[11]
-                st.session_state['cid_2'] = resultado[12]
-                st.session_state['mod_1'] = resultado[13]
-                st.session_state['mod_2'] = resultado[14]
-                st.session_state['valor_carga'] = resultado[15]
-                st.session_state['descarga'] = resultado[16]
-                st.session_state['adiantamento'] = resultado[17]
-                st.session_state['valor_frete'] = resultado[18]
+                st.session_state['cpf_motorista'] = resultado[4]
+                st.session_state['placa'] = resultado[5]
+                st.session_state['perfil_vei'] = resultado[6]                
+                st.session_state['minuta_cvia'] = resultado[7]
+                st.session_state['ot_viagem'] = resultado[8]
+                st.session_state['cubagem'] = resultado[9]
+                st.session_state['rot_1'] = resultado[10]
+                st.session_state['rot_2'] = resultado[11]
+                st.session_state['cid_1'] = resultado[12]
+                st.session_state['cid_2'] = resultado[13]
+                st.session_state['mod_1'] = resultado[14]
+                st.session_state['mod_2'] = resultado[15]
+                st.session_state['valor_carga'] = resultado[16]
+                st.session_state['descarga'] = resultado[17]
+                st.session_state['adiantamento'] = resultado[18]
+                st.session_state['valor_frete'] = resultado[19]
             else:
                 st.warning("Nenhum registro encontrado com esse ID.")
             
@@ -122,6 +149,7 @@ def submit_data():
     cliente = st.session_state.get('cliente', '')
     cod_cliente = st.session_state.get('cod_cliente', '')
     motorista = st.session_state.get('motorista', '')
+    cpf_motorista = st.session_state.get('cpf_motorista', '')
     placa = st.session_state.get('placa', '')
     perfil_vei = st.session_state.get('perfil_vei', '')    
     minuta_cvia = st.session_state.get('minuta_cvia', '')
@@ -146,7 +174,7 @@ def submit_data():
     mod_1 = mod_1 if mod_1 else None
     mod_2 = mod_2 if mod_2 else None
     
-    if data and cliente and cod_cliente and motorista and placa and perfil_vei and minuta_cvia and ot_viagem and cubagem and valor_carga and descarga and adiantamento and valor_frete:
+    if data and cliente and cod_cliente and motorista and cpf_motorista and placa and perfil_vei and minuta_cvia and ot_viagem and cubagem and valor_carga and descarga and adiantamento and valor_frete:
         try:
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
@@ -160,18 +188,18 @@ def submit_data():
             if id_registro:
                 query = """
                     UPDATE tela_inicial 
-                    SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, placa = %s, perfil_vei = %s
+                    SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s
                     , minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
+                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
             else:
                 query = """
                     INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values = (data, cliente, cod_cliente, motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete)
+                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete)
             
             cursor.execute(query, values)
             conn.commit()
@@ -262,7 +290,26 @@ elif st.session_state['opcao'] == "Novo Cadastro":
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
     
     data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
-    motorista = st.text_input("Motorista", value=st.session_state.get('motorista', ''), key='motorista')
+    
+    # Buscar os motoristas e seus CPFs
+    motoristas = buscar_motoristas()
+    motorista_nomes = list(motoristas.keys())
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        motorista = st.selectbox(
+            "Motorista",
+            options=[""] + motorista_nomes,  # Adiciona uma opção vazia no início
+            index=safe_index(motorista_nomes, st.session_state.get('motorista', '')),
+            key='motorista'
+        )
+    with col2:
+        cpf_motorista = st.text_input(
+            "CPF do Motorista",
+            value=motoristas.get(st.session_state.get('motorista', ''),  # Autopreenche o CPF
+            key='cpf_motorista'
+        )
+    
     placa = st.text_input("Placa", value=st.session_state.get('placa', ''), key='placa')
     perfil_vei = st.selectbox(
         "Perfil do Veículo", 
