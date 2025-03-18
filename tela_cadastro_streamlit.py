@@ -95,9 +95,9 @@ def buscar_lancamento_por_id(id_registro):
         try:
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
-                password='@Kaclju2125.',  # Substitua pela senha do MySQL
+                password='admin',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19156,  # Porta gerada pelo Ngrok
+                port=19250,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
@@ -116,7 +116,7 @@ def buscar_lancamento_por_id(id_registro):
                 st.session_state['cliente'] = resultado[1]
                 st.session_state['cod_cliente'] = resultado[2]
                 st.session_state['motorista'] = resultado[3]
-                st.session_state['cpf_motorista'] = resultado[4]
+                st.session_state['cpf_motorista'] = resultado[4]  # Atualiza o CPF do motorista
                 st.session_state['placa'] = resultado[5]
                 st.session_state['perfil_vei'] = resultado[6]                
                 st.session_state['minuta_cvia'] = resultado[7]
@@ -306,7 +306,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     with col2:
         cpf_motorista = st.text_input(
             "CPF do Motorista",
-            value=motoristas.get(st.session_state.get('motorista', ''), ''),  # Autopreenche o CPF apenas se for um novo cadastro
+            value=st.session_state.get('cpf_motorista', ''),  # Usa o valor do session_state
             key='cpf_motorista'
         )
     
