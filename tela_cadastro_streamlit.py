@@ -293,14 +293,14 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     
     # Buscar os motoristas e seus CPFs
     motoristas = buscar_motoristas()
-    motorista_nomes = list(motoristas.keys())
+    notorista = list(motoristas.keys())
     
     col1, col2 = st.columns(2)
     with col1:
         motorista = st.selectbox(
             "Motorista",
-            options=[""] + motorista_nomes,  # Adiciona uma opção vazia no início
-            index=safe_index(motorista_nomes, st.session_state.get('motorista', '')),
+            options=[""] + notorista,  # Adiciona uma opção vazia no início
+            index=safe_index(notorista, st.session_state.get('motorista', '')),
             key='motorista'
         )
     with col2:
