@@ -297,16 +297,20 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     
     col1, col2 = st.columns(2)
     with col1:
-        # Verifica se o valor do motorista está na lista de opções
-        motorista_atual = st.session_state.get('motorista', '')
-        if motorista_atual not in motorista_nomes:
-            motorista_atual = ""  # Define como vazio se não estiver na lista
-        motorista = st.selectbox(
-            "Motorista",
-            options=[""] + motorista_nomes,  # Adiciona uma opção vazia no início
-            index=safe_index(motorista_nomes, motorista_atual),  # Usa o índice seguro
-            key='motorista'
-        )
+        # Verifica se estamos em modo de busca (ID foi informado)
+        if st.session_state.get('id', ''):  # Modo de busca
+            motorista = st.text_input(
+                "Motorista",
+                value=st.session_state.get('motorista', ''),  # Traz o valor exato da tabela
+                key='motorista'
+            )
+        else:  # Modo de novo cadastro
+            motorista = st.selectbox(
+                "Motorista",
+                options=[""] + motorista_nomes,  # Adiciona uma opção vazia no início
+                index=safe_index(motorista_nomes, st.session_state.get('motorista', '')),  # Usa o índice seguro
+                key='motorista'
+            )
     with col2:
         cpf_motorista = st.text_input(
             "CPF do Motorista",
