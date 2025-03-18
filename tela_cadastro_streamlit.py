@@ -306,7 +306,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     with col2:
         cpf_motorista = st.text_input(
             "CPF do Motorista",
-            value=motoristas.get(st.session_state.get('motorista', '')),  # Autopreenche o CPF
+            value=motoristas.get(st.session_state.get('motorista', ''), ''),  # Autopreenche o CPF apenas se for um novo cadastro
             key='cpf_motorista'
         )
     
