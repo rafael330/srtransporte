@@ -95,9 +95,9 @@ def buscar_lancamento_por_id(id_registro):
         try:
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
-                password='admin',  # Substitua pela senha do MySQL
+                password='@Kaclju2125.',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19250,  # Porta gerada pelo Ngrok
+                port=19156,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
