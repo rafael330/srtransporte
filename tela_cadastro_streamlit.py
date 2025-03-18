@@ -9,7 +9,7 @@ def buscar_rotas_cidades():
             user='root',  # Substitua pelo usuário do MySQL
             password='admin',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=18084,  # Porta gerada pelo Ngrok
+            port=19250,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -35,7 +35,7 @@ def buscar_motoristas():
             user='root',  # Substitua pelo usuário do MySQL
             password='admin',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=18084,  # Porta gerada pelo Ngrok
+            port=19250,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -61,7 +61,7 @@ def buscar_todos_lancamentos():
             user='root',  # Substitua pelo usuário do MySQL
             password='admin',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=18084,  # Porta gerada pelo Ngrok
+            port=19250,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -97,7 +97,7 @@ def buscar_lancamento_por_id(id_registro):
                 user='root',  # Substitua pelo usuário do MySQL
                 password='admin',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=18084,  # Porta gerada pelo Ngrok
+                port=19250,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
@@ -180,7 +180,7 @@ def submit_data():
                 user='root',  # Substitua pelo usuário do MySQL
                 password='admin',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=18084,  # Porta gerada pelo Ngrok
+                port=19250,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
