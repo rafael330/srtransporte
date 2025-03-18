@@ -307,9 +307,12 @@ elif st.session_state['opcao'] == "Novo Cadastro":
             motorista = st.selectbox(
                 "Motorista",
                 options=[""] + motorista_nomes,  # Adiciona uma opção vazia no início
-                index=safe_index(motorista_nomes, st.session_state.get('motorista', ''))),  # Usa o índice seguro
-                key='motorista',
-                on_change=lambda: st.session_state.update(cpf_motorista=motoristas.get(st.session_state.motorista, ''))  # Atualiza o CPF automaticamente
+                index=safe_index(motorista_nomes, st.session_state.get('motorista', '')),  # Usa o índice seguro
+                key='motorista'
+            )
+            # Atualiza o CPF automaticamente ao selecionar o motorista
+            if motorista:
+                st.session_state['cpf_motorista'] = motoristas.get(motorista, '')
     with col2:
         cpf_motorista = st.text_input(
             "CPF do Motorista",
