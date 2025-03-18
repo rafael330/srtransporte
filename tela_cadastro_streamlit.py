@@ -228,7 +228,7 @@ def safe_index(options, value):
 
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
-    st.session_state['opcao'] = "Consulta"
+    st.session_state['opcao'] = "Novo Cadastro"
 
 # Configurando a barra lateral com botões
 st.sidebar.title("Menu")
