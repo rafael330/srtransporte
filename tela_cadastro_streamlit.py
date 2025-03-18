@@ -67,8 +67,8 @@ def buscar_todos_lancamentos():
         cursor = conn.cursor()
         
         query = """
-            SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia,
-                   ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+            SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot,
+                   id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
             FROM tela_inicial
         """
         cursor.execute(query)
@@ -76,7 +76,7 @@ def buscar_todos_lancamentos():
         
         colunas = [
             'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
-            'Minuta/CVia', 'OT Viagem', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
+            'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
             'Descarga', 'Adiantamento', 'Valor do Frete'
         ]
         df = pd.DataFrame(resultados, columns=colunas)
@@ -104,7 +104,7 @@ def buscar_lancamento_por_id(id_registro):
             
             query = """
                 SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-                       minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+                       minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial 
                 WHERE id = %s
             """
@@ -119,8 +119,8 @@ def buscar_lancamento_por_id(id_registro):
                 st.session_state['cpf_motorista'] = resultado[4]  # Atualiza o CPF do motorista
                 st.session_state['placa'] = resultado[5]
                 st.session_state['perfil_vei'] = resultado[6]                
-                st.session_state['minuta_cvia'] = resultado[7]
-                st.session_state['ot_viagem'] = resultado[8]
+                st.session_state['minuta_ot'] = resultado[7]  # Alterado para minuta_ot
+                st.session_state['id_carga_cvia'] = resultado[8]  # Alterado para id_carga_cvia
                 st.session_state['cubagem'] = resultado[9]
                 st.session_state['rot_1'] = resultado[10]
                 st.session_state['rot_2'] = resultado[11]
@@ -152,8 +152,8 @@ def submit_data():
     cpf_motorista = st.session_state.get('cpf_motorista', '')
     placa = st.session_state.get('placa', '')
     perfil_vei = st.session_state.get('perfil_vei', '')    
-    minuta_cvia = st.session_state.get('minuta_cvia', '')
-    ot_viagem = st.session_state.get('ot_viagem', '')
+    minuta_ot = st.session_state.get('minuta_ot', '')  # Alterado para minuta_ot
+    id_carga_cvia = st.session_state.get('id_carga_cvia', '')  # Alterado para id_carga_cvia
     cubagem = st.session_state.get('cubagem', '')
     rot_1 = st.session_state.get('rot_1', '')
     rot_2 = st.session_state.get('rot_2', '')
@@ -174,7 +174,7 @@ def submit_data():
     mod_1 = mod_1 if mod_1 else None
     mod_2 = mod_2 if mod_2 else None
     
-    if data and cliente and cod_cliente and motorista and cpf_motorista and placa and perfil_vei and minuta_cvia and ot_viagem and cubagem and valor_carga and descarga and adiantamento and valor_frete:
+    if data and cliente and cod_cliente and motorista and cpf_motorista and placa and perfil_vei and minuta_ot and id_carga_cvia and cubagem and valor_carga and descarga and adiantamento and valor_frete:
         try:
             conn = mysql.connector.connect(
                 user='root',  # Substitua pelo usuário do MySQL
@@ -189,17 +189,17 @@ def submit_data():
                 query = """
                     UPDATE tela_inicial 
                     SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s
-                    , minuta_cvia = %s, ot_viagem = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                    , minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
-                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
+                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
             else:
                 query = """
                     INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                    (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_cvia, ot_viagem, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete)
+                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete)
             
             cursor.execute(query, values)
             conn.commit()
@@ -273,9 +273,9 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     
     col1, col2 = st.columns(2)
     with col1:
-        minuta_cvia = st.text_input("Minuta/CVia", value=st.session_state.get('minuta_cvia', ''), key='minuta_cvia')
+        minuta_ot = st.text_input("Minuta/OT", value=st.session_state.get('minuta_ot', ''), key='minuta_ot')  # Alterado para Minuta/OT
     with col2:
-        ot_viagem = st.text_input("OT Viagem", value=st.session_state.get('ot_viagem', ''), key='ot_viagem')
+        id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')  # Alterado para ID carga / CVia
     
     col1, col2 = st.columns(2)
     with col1:
