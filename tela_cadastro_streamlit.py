@@ -338,49 +338,91 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     # Campos de Rota, Cidade e Modalidade lado a lado
     col1, col2, col3 = st.columns(3)
     with col1:
-        rot_1 = st.selectbox(
-            "Rota 1",
-            options=[""] + rotas,  # Adiciona uma opção vazia no início
-            index=0,  # Inicia com a opção vazia
-            key='rot_1'
-        )
+        if st.session_state.get('id', ''):  # Modo de busca
+            rot_1 = st.text_input(
+                "Rota 1",
+                value=st.session_state.get('rot_1', ''),  # Traz o valor exato da tabela
+                key='rot_1'
+            )
+        else:  # Modo de novo cadastro
+            rot_1 = st.selectbox(
+                "Rota 1",
+                options=[""] + rotas,  # Adiciona uma opção vazia no início
+                index=0,  # Inicia com a opção vazia
+                key='rot_1'
+            )
     with col2:
-        cid_1 = st.selectbox(
-            "Cidade 1",
-            options=[""] + cidades,  # Adiciona uma opção vazia no início
-            index=0,  # Inicia com a opção vazia
-            key='cid_1'
-        )
+        if st.session_state.get('id', ''):  # Modo de busca
+            cid_1 = st.text_input(
+                "Cidade 1",
+                value=st.session_state.get('cid_1', ''),  # Traz o valor exato da tabela
+                key='cid_1'
+            )
+        else:  # Modo de novo cadastro
+            cid_1 = st.selectbox(
+                "Cidade 1",
+                options=[""] + cidades,  # Adiciona uma opção vazia no início
+                index=0,  # Inicia com a opção vazia
+                key='cid_1'
+            )
     with col3:
-        mod_1 = st.selectbox(
-            "Modalidade 1",
-            options=[""] + modalidades,  # Adiciona uma opção vazia no início
-            index=0,  # Inicia com a opção vazia
-            key='mod_1'
-        )
+        if st.session_state.get('id', ''):  # Modo de busca
+            mod_1 = st.text_input(
+                "Modalidade 1",
+                value=st.session_state.get('mod_1', ''),  # Traz o valor exato da tabela
+                key='mod_1'
+            )
+        else:  # Modo de novo cadastro
+            mod_1 = st.selectbox(
+                "Modalidade 1",
+                options=[""] + modalidades,  # Adiciona uma opção vazia no início
+                index=0,  # Inicia com a opção vazia
+                key='mod_1'
+            )
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        rot_2 = st.selectbox(
-            "Rota 2",
-            options=[""] + rotas,  # Adiciona uma opção vazia no início
-            index=0,  # Inicia com a opção vazia
-            key='rot_2'
-        )
+        if st.session_state.get('id', ''):  # Modo de busca
+            rot_2 = st.text_input(
+                "Rota 2",
+                value=st.session_state.get('rot_2', ''),  # Traz o valor exato da tabela
+                key='rot_2'
+            )
+        else:  # Modo de novo cadastro
+            rot_2 = st.selectbox(
+                "Rota 2",
+                options=[""] + rotas,  # Adiciona uma opção vazia no início
+                index=0,  # Inicia com a opção vazia
+                key='rot_2'
+            )
     with col2:
-        cid_2 = st.selectbox(
-            "Cidade 2",
-            options=[""] + cidades,  # Adiciona uma opção vazia no início
-            index=0,  # Inicia com a opção vazia
-            key='cid_2'
-        )
+        if st.session_state.get('id', ''):  # Modo de busca
+            cid_2 = st.text_input(
+                "Cidade 2",
+                value=st.session_state.get('cid_2', ''),  # Traz o valor exato da tabela
+                key='cid_2'
+            )
+        else:  # Modo de novo cadastro
+            cid_2 = st.selectbox(
+                "Cidade 2",
+                options=[""] + cidades,  # Adiciona uma opção vazia no início
+                index=0,  # Inicia com a opção vazia
+                key='cid_2'
+            )
     with col3:
-        mod_2 = st.selectbox(
-            "Modalidade 2",
-            options=[""] + modalidades,  # Adiciona uma opção vazia no início
-            index=0,  # Inicia com a opção vazia
-            key='mod_2'
-        )
+        if st.session_state.get('id', ''):  # Modo de busca
+            mod_2 = st.text_input(
+                "Modalidade 2",
+                value=st.session_state.get('mod_2', ''),  # Traz o valor exato da tabela
+                key='mod_2'
+            )
+        else:  # Modo de novo cadastro
+            mod_2 = st.selectbox(
+                "Modalidade 2",
+                options=[""] + modalidades,  # Adiciona uma opção vazia no início
+                index=0,  # Inicia com a opção vazia
+                key='mod_2'
+            )
     
     if st.button("Enviar"):
         submit_data()
