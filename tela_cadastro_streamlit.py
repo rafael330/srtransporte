@@ -233,212 +233,62 @@ def submit_data():
     else:
         st.warning("Por favor, preencha todos os campos obrigatórios.")
 
-# Função para encontrar o índice seguro
-def safe_index(options, value):
-    try:
-        return options.index(value) if value in options else 0
-    except ValueError:
-        return 0
+# Inicialização do session_state
+if 'id' not in st.session_state:
+    st.session_state['id'] = ''  # ID inicialmente vazio
+if 'modo_edicao' not in st.session_state:
+    st.session_state['modo_edicao'] = False  # Indica se está em modo de edição
 
-# Inicializando o session_state
-if 'opcao' not in st.session_state:
-    st.session_state['opcao'] = "Novo Cadastro"
-
-# Configurando a barra lateral com botões
+# Configuração da barra lateral
 st.sidebar.title("Menu")
 if st.sidebar.button("Novo Cadastro"):
-    st.session_state['opcao'] = "Novo Cadastro"
-if st.sidebar.button("Consulta"):
-    st.session_state['opcao'] = "Consulta"
+    st.session_state['modo_edicao'] = False  # Modo de novo cadastro
+    st.session_state['id'] = ''  # Limpa o ID para novo cadastro
+if st.sidebar.button("Consulta/Edição"):
+    st.session_state['modo_edicao'] = True  # Modo de edição
 
-# Tela de Consulta
-if st.session_state['opcao'] == "Consulta":
-    st.title("Consulta de Lançamentos")
+# Tela de Consulta/Edição
+if st.session_state['modo_edicao']:
+    st.title("Consulta/Edição de Lançamentos")
     
-    id_filtro = st.text_input("Filtrar por ID")
+    # Campo para o usuário inserir o ID do lançamento
+    id_registro = st.text_input("Informe o ID do lançamento para edição", key='id_edicao')
     
-    df = buscar_todos_lancamentos()
-    
-    if id_filtro:
-        df = df[df['ID'] == int(id_filtro)]
-    
-    if not df.empty:
-        st.dataframe(df, height=500, use_container_width=True)
-    else:
-        st.warning("Nenhum lançamento encontrado.")
+    # Botão para buscar o lançamento
+    if st.button("Buscar Lançamento"):
+        if id_registro:
+            buscar_lancamento_por_id(id_registro)
+            st.session_state['id'] = id_registro  # Atualiza o ID no session_state
+        else:
+            st.warning("Por favor, informe o ID do lançamento.")
 
 # Tela de Novo Cadastro
-elif st.session_state['opcao'] == "Novo Cadastro":
-    st.title("Cadastro de carregamento")
+else:
+    st.title("Novo Cadastro de Carregamento")
     
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id')
-    with col2:
-        st.write("")
-        if st.button("Buscar"):
-            buscar_lancamento_por_id(id_registro)
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
-    with col2:
-        cod_cliente = st.text_input("Código do Cliente", value=st.session_state.get('cod_cliente', ''), key='cod_cliente')
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        minuta_ot = st.text_input("Minuta/OT", value=st.session_state.get('minuta_ot', ''), key='minuta_ot')  # Alterado para Minuta/OT
-    with col2:
-        id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')  # Alterado para ID carga / CVia
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
-    with col2:
-        valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
-    with col2:
-        adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
-    
-    data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
-    
-    # Buscar os motoristas e seus CPFs
-    motoristas = buscar_motoristas()
-    motorista_nomes = list(motoristas.keys())
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.session_state.get('id', ''):  # Modo de busca
-            motorista = st.text_input(
-                "Motorista",
-                value=st.session_state.get('motorista', ''),  # Traz o valor exato da tabela
-                key='motorista'
-            )
-        else:  # Modo de novo cadastro
-            motorista = st.selectbox(
-                "Motorista",
-                options=[""] + motorista_nomes,  # Adiciona uma opção vazia no início
-                index=safe_index(motorista_nomes, st.session_state.get('motorista', '')),  # Usa o índice seguro
-                key='motorista'
-            )
-            # Atualiza o CPF automaticamente ao selecionar o motorista
-            if motorista:
-                st.session_state['cpf_motorista'] = motoristas.get(motorista, '')
-    with col2:
-        cpf_motorista = st.text_input(
-            "CPF do Motorista",
-            value=st.session_state.get('cpf_motorista', ''),  # Usa o valor do session_state
-            key='cpf_motorista'
-        )
-    
-    placa = st.text_input("Placa", value=st.session_state.get('placa', ''), key='placa')
-    perfil_vei = st.selectbox(
-        "Perfil do Veículo", 
-        options=["", "3/4", "TOCO", "TRUCK"],
-        index=safe_index(["", "3/4", "TOCO", "TRUCK"], st.session_state.get('perfil_vei', '')),
-        key='perfil_vei'
-    )
-    cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
-    
-    # Buscar as rotas e cidades disponíveis
-    rotas_cidades = buscar_rotas_cidades()
-    rotas = list(set([rc[0] for rc in rotas_cidades]))  # Valores únicos para rotas
-    cidades = list(set([rc[1] for rc in rotas_cidades]))  # Valores únicos para cidades
-    
-    # Definir as modalidades
-    modalidades = ["VENDA", "ABA"]  # Opções de modalidade
-    
-    # Campos de Rota, Cidade e Modalidade lado a lado
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.session_state.get('id', ''):  # Modo de busca
-            rot_1 = st.text_input(
-                "Rota 1",
-                value=st.session_state.get('rot_1', ''),  # Traz o valor exato da tabela
-                key='rot_1'
-            )
-        else:  # Modo de novo cadastro
-            rot_1 = st.selectbox(
-                "Rota 1",
-                options=[""] + rotas,  # Adiciona uma opção vazia no início
-                index=0,  # Inicia com a opção vazia
-                key='rot_1'
-            )
-    with col2:
-        if st.session_state.get('id', ''):  # Modo de busca
-            cid_1 = st.text_input(
-                "Cidade 1",
-                value=st.session_state.get('cid_1', ''),  # Traz o valor exato da tabela
-                key='cid_1'
-            )
-        else:  # Modo de novo cadastro
-            cid_1 = st.selectbox(
-                "Cidade 1",
-                options=[""] + cidades,  # Adiciona uma opção vazia no início
-                index=0,  # Inicia com a opção vazia
-                key='cid_1'
-            )
-    with col3:
-        if st.session_state.get('id', ''):  # Modo de busca
-            mod_1 = st.text_input(
-                "Modalidade 1",
-                value=st.session_state.get('mod_1', ''),  # Traz o valor exato da tabela
-                key='mod_1'
-            )
-        else:  # Modo de novo cadastro
-            mod_1 = st.selectbox(
-                "Modalidade 1",
-                options=[""] + modalidades,  # Adiciona uma opção vazia no início
-                index=0,  # Inicia com a opção vazia
-                key='mod_1'
-            )
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.session_state.get('id', ''):  # Modo de busca
-            rot_2 = st.text_input(
-                "Rota 2",
-                value=st.session_state.get('rot_2', ''),  # Traz o valor exato da tabela
-                key='rot_2'
-            )
-        else:  # Modo de novo cadastro
-            rot_2 = st.selectbox(
-                "Rota 2",
-                options=[""] + rotas,  # Adiciona uma opção vazia no início
-                index=0,  # Inicia com a opção vazia
-                key='rot_2'
-            )
-    with col2:
-        if st.session_state.get('id', ''):  # Modo de busca
-            cid_2 = st.text_input(
-                "Cidade 2",
-                value=st.session_state.get('cid_2', ''),  # Traz o valor exato da tabela
-                key='cid_2'
-            )
-        else:  # Modo de novo cadastro
-            cid_2 = st.selectbox(
-                "Cidade 2",
-                options=[""] + cidades,  # Adiciona uma opção vazia no início
-                index=0,  # Inicia com a opção vazia
-                key='cid_2'
-            )
-    with col3:
-        if st.session_state.get('id', ''):  # Modo de busca
-            mod_2 = st.text_input(
-                "Modalidade 2",
-                value=st.session_state.get('mod_2', ''),  # Traz o valor exato da tabela
-                key='mod_2'
-            )
-        else:  # Modo de novo cadastro
-            mod_2 = st.selectbox(
-                "Modalidade 2",
-                options=[""] + modalidades,  # Adiciona uma opção vazia no início
-                index=0,  # Inicia com a opção vazia
-                key='mod_2'
-            )
-    
-    if st.button("Enviar"):
-        submit_data()
+    # Exibe o campo ID (somente leitura para novos cadastros)
+    st.text_input("ID (gerado automaticamente)", value=st.session_state.get('id', ''), key='id_novo', disabled=True)
+
+# Campos do formulário (compartilhados entre novo cadastro e edição)
+col1, col2 = st.columns(2)
+with col1:
+    cliente = st.text_input("Cliente", value=st.session_state.get('cliente', ''), key='cliente')
+with col2:
+    cod_cliente = st.text_input("Código do Cliente", value=st.session_state.get('cod_cliente', ''), key='cod_cliente')
+
+# Outros campos do formulário (adicionar conforme necessário)
+data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
+motorista = st.text_input("Motorista", value=st.session_state.get('motorista', ''), key='motorista')
+cpf_motorista = st.text_input("CPF do Motorista", value=st.session_state.get('cpf_motorista', ''), key='cpf_motorista')
+placa = st.text_input("Placa", value=st.session_state.get('placa', ''), key='placa')
+perfil_vei = st.selectbox(
+    "Perfil do Veículo", 
+    options=["", "3/4", "TOCO", "TRUCK"],
+    index=safe_index(["", "3/4", "TOCO", "TRUCK"], st.session_state.get('perfil_vei', '')),
+    key='perfil_vei'
+)
+cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
+
+# Botão para enviar os dados
+if st.button("Enviar"):
+    submit_data()
