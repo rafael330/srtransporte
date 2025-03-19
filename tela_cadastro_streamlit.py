@@ -6,10 +6,10 @@ import pandas as pd
 def buscar_rotas_cidades():
     try:
         conn = mysql.connector.connect(
-            user='root',  # Substitua pelo usuário do MySQL
-            password='@Kaclju2125.',  # Substitua pela senha do MySQL
+            user='rafael_logitech',  # Substitua pelo usuário do MySQL
+            password='admin',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=19156,  # Porta gerada pelo Ngrok
+            port=11804,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -32,10 +32,10 @@ def buscar_rotas_cidades():
 def buscar_motoristas():
     try:
         conn = mysql.connector.connect(
-            user='root',  # Substitua pelo usuário do MySQL
-            password='@Kaclju2125.',  # Substitua pela senha do MySQL
+            user='rafael_logitech',  # Substitua pelo usuário do MySQL
+            password='admin',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=19156,  # Porta gerada pelo Ngrok
+            port=11804,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -58,10 +58,10 @@ def buscar_motoristas():
 def buscar_todos_lancamentos():
     try:
         conn = mysql.connector.connect(
-            user='root',  # Substitua pelo usuário do MySQL
-            password='@Kaclju2125.',  # Substitua pela senha do MySQL
+            user='rafael_logitech',  # Substitua pelo usuário do MySQL
+            password='admin',  # Substitua pela senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=19156,  # Porta gerada pelo Ngrok
+            port=11804,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         cursor = conn.cursor()
@@ -94,10 +94,10 @@ def buscar_lancamento_por_id(id_registro):
     if id_registro:
         try:
             conn = mysql.connector.connect(
-                user='root',  # Substitua pelo usuário do MySQL
-                password='@Kaclju2125.',  # Substitua pela senha do MySQL
+                user='rafael_logitech',  # Substitua pelo usuário do MySQL
+                password='admin',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19156,  # Porta gerada pelo Ngrok
+                port=11804,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
@@ -183,10 +183,10 @@ def submit_data():
     if all(campos_obrigatorios):  # Verifica se todos os campos obrigatórios estão preenchidos
         try:
             conn = mysql.connector.connect(
-                user='root',  # Substitua pelo usuário do MySQL
-                password='@Kaclju2125.',  # Substitua pela senha do MySQL
+                user='rafael_logitech',  # Substitua pelo usuário do MySQL
+                password='admin',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19156,  # Porta gerada pelo Ngrok
+                port=11804,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
