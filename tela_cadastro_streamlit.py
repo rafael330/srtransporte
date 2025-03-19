@@ -174,13 +174,19 @@ def submit_data():
     mod_1 = mod_1 if mod_1 else None
     mod_2 = mod_2 if mod_2 else None
     
-    if data and cliente and cod_cliente and motorista and cpf_motorista and placa and perfil_vei and minuta_ot and id_carga_cvia and cubagem and valor_carga and descarga and adiantamento and valor_frete:
+    # Verificando se todos os campos obrigatórios estão preenchidos
+    campos_obrigatorios = [
+        data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
+        minuta_ot, id_carga_cvia, cubagem, valor_carga, descarga, adiantamento, valor_frete
+    ]
+    
+    if all(campos_obrigatorios):  # Verifica se todos os campos obrigatórios estão preenchidos
         try:
             conn = mysql.connector.connect(
-                user='rafael_logitech',  # Substitua pelo usuário do MySQL
-                password='admin',  # Substitua pela senha do MySQL
+                user='root',  # Substitua pelo usuário do MySQL
+                password='@Kaclju2125.',  # Substitua pela senha do MySQL
                 host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=11804,  # Porta gerada pelo Ngrok
+                port=19156,  # Porta gerada pelo Ngrok
                 database='bd_srtransporte'  # Nome do banco de dados
             )
             cursor = conn.cursor()
@@ -192,14 +198,22 @@ def submit_data():
                     , minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                     WHERE id = %s
                 """
-                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete, id_registro)
+                values = (
+                    data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
+                    minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, 
+                    valor_carga, descarga, adiantamento, valor_frete, id_registro
+                )
             else:
                 query = """
                     INSERT INTO tela_inicial 
                     (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values = (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete)
+                values = (
+                    data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
+                    minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, 
+                    valor_carga, descarga, adiantamento, valor_frete
+                )
             
             cursor.execute(query, values)
             conn.commit()
@@ -217,14 +231,7 @@ def submit_data():
         except Exception as e:
             st.error(f"Erro ao salvar dados: {str(e)}")
     else:
-        st.warning("Por favor, preencha todos os campos.")
-
-# Função para encontrar o índice seguro
-def safe_index(options, value):
-    try:
-        return options.index(value) if value in options else 0
-    except ValueError:
-        return 0
+        st.warning("Por favor, preencha todos os campos obrigatórios.")
 
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
