@@ -273,7 +273,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     
     col1, col2 = st.columns([4, 1])
     with col1:
-        id_registro = st.text_input("ID", key='id')
+        id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id')
     with col2:
         st.write("")
         if st.button("Buscar"):
