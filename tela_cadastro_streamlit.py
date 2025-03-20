@@ -297,7 +297,7 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
         if id_registro:
             df = buscar_todos_lancamentos(filtro_id=id_registro)
         elif filtro_data:
-            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%d-%m-%Y'))
+            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%Y-%m-%d'))
         else:
             df = buscar_todos_lancamentos()
         
