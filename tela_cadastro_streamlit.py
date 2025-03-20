@@ -389,7 +389,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
     
     #data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
-    data = st.date_input("Data", value=datetima.now().date(), key='filtro_data')
+    data = st.date_input("Data", value=datetime.now().date(), key='filtro_data')
     
     col1, col2, col3 = st.columns(3)
     with col1:
