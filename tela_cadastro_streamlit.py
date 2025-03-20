@@ -162,64 +162,80 @@ def buscar_lancamento_por_id(id_registro):
 
 # Função para enviar dados (inserir ou atualizar)
 def submit_data():
-    campos_obrigatorios = [
-        st.session_state.get('data', ''),
-        st.session_state.get('cliente', ''),
-        st.session_state.get('cod_cliente', ''),
-        st.session_state.get('motorista', ''),
-        st.session_state.get('cpf_motorista', ''),
-        st.session_state.get('placa', ''),
-        st.session_state.get('perfil_vei', ''),
-        st.session_state.get('minuta_ot', ''),
-        st.session_state.get('id_carga_cvia', ''),
-        st.session_state.get('cubagem', ''),
-        st.session_state.get('valor_carga', ''),
-        st.session_state.get('descarga', ''),
-        st.session_state.get('adiantamento', ''),
-        st.session_state.get('valor_frete', '')
-    ]
+    # Lista de campos obrigatórios
+    campos_obrigatorios = {
+        'data': st.session_state.get('data', ''),
+        'cliente': st.session_state.get('cliente', ''),
+        'cod_cliente': st.session_state.get('cod_cliente', ''),
+        'motorista': st.session_state.get('motorista', ''),
+        'cpf_motorista': st.session_state.get('cpf_motorista', ''),
+        'placa': st.session_state.get('placa', ''),
+        'perfil_vei': st.session_state.get('perfil_vei', ''),
+        'minuta_ot': st.session_state.get('minuta_ot', ''),
+        'id_carga_cvia': st.session_state.get('id_carga_cvia', ''),
+        'cubagem': st.session_state.get('cubagem', ''),
+        'valor_carga': st.session_state.get('valor_carga', ''),
+        'valor_frete': st.session_state.get('valor_frete', '')
+    }
+
+    # Verifica se todos os campos obrigatórios foram preenchidos
+    campos_vazios = [campo for campo, valor in campos_obrigatorios.items() if not valor]
     
-    if all(campos_obrigatorios):
-        conn = conectar_banco()
-        if conn:
-            try:
-                cursor = conn.cursor()
-                id_registro = st.session_state.get('id', '')
-                values = (
-                    st.session_state['data'], st.session_state['cliente'], st.session_state['cod_cliente'],
-                    st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
-                    st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
-                    st.session_state['cubagem'], st.session_state['rot_1'], st.session_state['rot_2'],
-                    st.session_state['cid_1'], st.session_state['cid_2'], st.session_state['mod_1'],
-                    st.session_state['mod_2'], st.session_state['valor_carga'], st.session_state['descarga'],
-                    st.session_state['adiantamento'], st.session_state['valor_frete']
-                )
-                if id_registro:
-                    query = """
-                        UPDATE tela_inicial 
-                        SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
-                            minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
-                        WHERE id = %s
-                    """
-                    cursor.execute(query, values + (id_registro,))
-                else:
-                    query = """
-                        INSERT INTO tela_inicial 
-                        (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    """
-                    cursor.execute(query, values)
-                    id_registro = cursor.lastrowid
-                conn.commit()
-                cursor.close()
-                conn.close()
-                st.success("Dados salvos com sucesso!")
-                st.session_state.clear()  # Limpa os campos após o envio
-                st.experimental_rerun()
-            except Exception as e:
-                st.error(f"Erro ao salvar dados: {str(e)}")
-    else:
-        st.warning("Por favor, preencha todos os campos obrigatórios.")
+    if campos_vazios:
+        st.warning(f"Os seguintes campos obrigatórios não foram preenchidos: {', '.join(campos_vazios)}")
+        return  # Interrompe a execução se houver campos obrigatórios vazios
+
+    # Conecta ao banco de dados
+    conn = conectar_banco()
+    if not conn:
+        st.error("Erro ao conectar ao banco de dados.")
+        return
+
+    try:
+        cursor = conn.cursor()
+        id_registro = st.session_state.get('id', '')
+
+        # Valores a serem inseridos ou atualizados
+        values = (
+            st.session_state['data'], st.session_state['cliente'], st.session_state['cod_cliente'],
+            st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
+            st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
+            st.session_state['cubagem'], st.session_state['rot_1'], st.session_state.get('rot_2', ''),
+            st.session_state['cid_1'], st.session_state.get('cid_2', ''), st.session_state['mod_1'],
+            st.session_state.get('mod_2', ''), st.session_state['valor_carga'], st.session_state.get('descarga', ''),
+            st.session_state.get('adiantamento', ''), st.session_state['valor_frete']
+        )
+
+        # Se houver um ID, atualiza o registro existente
+        if id_registro:
+            query = """
+                UPDATE tela_inicial 
+                SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
+                    minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                WHERE id = %s
+            """
+            cursor.execute(query, values + (id_registro,))
+        else:
+            # Caso contrário, insere um novo registro
+            query = """
+                INSERT INTO tela_inicial 
+                (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, values)
+            id_registro = cursor.lastrowid  # Obtém o ID do novo registro
+
+        conn.commit()  # Confirma a transação
+        cursor.close()
+        conn.close()
+
+        st.success("Dados salvos com sucesso!")
+        st.session_state.clear()  # Limpa os campos após o envio
+        st.experimental_rerun()  # Recarrega a página para limpar o formulário
+    except mysql.connector.Error as err:
+        st.error(f"Erro ao salvar dados no banco de dados: {err}")
+    except Exception as e:
+        st.error(f"Erro inesperado: {str(e)}")
 
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
