@@ -178,6 +178,9 @@ def submit_data():
         'valor_frete': st.session_state.get('valor_frete', '')
     }
 
+    # Log para depuração
+    st.write(f"Valor da data no session_state: {st.session_state.get('data', '')}")
+
     # Verifica se todos os campos obrigatórios foram preenchidos
     campos_vazios = [campo for campo, valor in campos_obrigatorios.items() if not valor]
     
