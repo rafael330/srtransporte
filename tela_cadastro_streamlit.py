@@ -99,6 +99,7 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
             elif filtro_data:
                 # Converte a data para o formato YYYY-MM-DD
                 data_formatada = filtro_data.strftime("%Y-%m-%d")
+                st.write(f"Data usada no filtro: {data_formatada}")  # Log para depuração
                 query += " WHERE data = %s"
                 cursor.execute(query, (data_formatada,))
             else:
@@ -297,7 +298,7 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
         if id_registro:
             df = buscar_todos_lancamentos(filtro_id=id_registro)
         elif filtro_data:
-            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%Y-%m-%d'))
+            df = buscar_todos_lancamentos(filtro_data=filtro_data)
         else:
             df = buscar_todos_lancamentos()
         
