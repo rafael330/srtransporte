@@ -2,8 +2,8 @@ import streamlit as st
 import mysql.connector
 import pandas as pd
 
-# Função para buscar todas as rotas e cidades da tabela cad_rota
-def buscar_rotas_cidades():
+# Função para conectar ao banco de dados
+def conectar_banco():
     try:
         conn = mysql.connector.connect(
             user='root',  # Substitua pelo usuário do MySQL
@@ -12,194 +12,174 @@ def buscar_rotas_cidades():
             port=19156,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
-        cursor = conn.cursor()
-        query = "SELECT rota, cidade FROM cad_rota"
-        cursor.execute(query)
-        resultados = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return resultados
+        return conn
     except mysql.connector.Error as err:
-        st.error(f"Erro ao buscar rotas e cidades: {err}")
-        return []
+        st.error(f"Erro ao conectar ao banco de dados: {err}")
+        return None
+
+# Função para buscar todas as rotas e cidades da tabela cad_rota
+def buscar_rotas_cidades():
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT rota, cidade FROM cad_rota"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return resultados
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar rotas e cidades: {err}")
+    return []
 
 # Função para buscar todos os motoristas e seus CPFs da tabela cad_mot
 def buscar_motoristas():
-    try:
-        conn = mysql.connector.connect(
-            user='root',  # Substitua pelo usuário do MySQL
-            password='@Kaclju2125.',  # Substitua pela senha do MySQL
-            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=19156,  # Porta gerada pelo Ngrok
-            database='bd_srtransporte'  # Nome do banco de dados
-        )
-        cursor = conn.cursor()
-        query = "SELECT nome, cpf FROM cad_mot"
-        cursor.execute(query)
-        resultados = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return {nome: cpf for nome, cpf in resultados}
-    except mysql.connector.Error as err:
-        st.error(f"Erro ao buscar motoristas: {err}")
-        return {}
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT nome, cpf FROM cad_mot"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return {nome: cpf for nome, cpf in resultados}
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar motoristas: {err}")
+    return {}
 
 # Função para buscar todos os lançamentos no banco de dados
 def buscar_todos_lancamentos():
-    try:
-        conn = mysql.connector.connect(
-            user='root',  # Substitua pelo usuário do MySQL
-            password='@Kaclju2125.',  # Substitua pela senha do MySQL
-            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=19156,  # Porta gerada pelo Ngrok
-            database='bd_srtransporte'  # Nome do banco de dados
-        )
-        cursor = conn.cursor()
-        query = """
-            SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot,
-                   id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
-            FROM tela_inicial
-        """
-        cursor.execute(query)
-        resultados = cursor.fetchall()
-        colunas = [
-            'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
-            'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
-            'Descarga', 'Adiantamento', 'Valor do Frete'
-        ]
-        df = pd.DataFrame(resultados, columns=colunas)
-        cursor.close()
-        conn.close()
-        return df
-    except mysql.connector.Error as err:
-        st.error(f"Erro ao buscar dados: {err}")
-        return pd.DataFrame()
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = """
+                SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot,
+                       id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+                FROM tela_inicial
+            """
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            colunas = [
+                'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
+                'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
+                'Descarga', 'Adiantamento', 'Valor do Frete'
+            ]
+            df = pd.DataFrame(resultados, columns=colunas)
+            cursor.close()
+            conn.close()
+            return df
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar dados: {err}")
+    return pd.DataFrame()
 
 # Função para buscar um lançamento pelo ID
 def buscar_lancamento_por_id(id_registro):
     if id_registro:
-        try:
-            conn = mysql.connector.connect(
-                user='root',  # Substitua pelo usuário do MySQL
-                password='@Kaclju2125.',  # Substitua pela senha do MySQL
-                host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19156,  # Porta gerada pelo Ngrok
-                database='bd_srtransporte'  # Nome do banco de dados
-            )
-            cursor = conn.cursor()
-            query = """
-                SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-                       minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
-                FROM tela_inicial 
-                WHERE id = %s
-            """
-            cursor.execute(query, (id_registro,))
-            resultado = cursor.fetchone()
-            if resultado:
-                st.session_state['data'] = resultado[0]
-                st.session_state['cliente'] = resultado[1]
-                st.session_state['cod_cliente'] = resultado[2]
-                st.session_state['motorista'] = resultado[3]
-                st.session_state['cpf_motorista'] = resultado[4]
-                st.session_state['placa'] = resultado[5]
-                st.session_state['perfil_vei'] = resultado[6]
-                st.session_state['minuta_ot'] = resultado[7]
-                st.session_state['id_carga_cvia'] = resultado[8]
-                st.session_state['cubagem'] = resultado[9]
-                st.session_state['rot_1'] = resultado[10]
-                st.session_state['rot_2'] = resultado[11]
-                st.session_state['cid_1'] = resultado[12]
-                st.session_state['cid_2'] = resultado[13]
-                st.session_state['mod_1'] = resultado[14]
-                st.session_state['mod_2'] = resultado[15]
-                st.session_state['valor_carga'] = resultado[16]
-                st.session_state['descarga'] = resultado[17]
-                st.session_state['adiantamento'] = resultado[18]
-                st.session_state['valor_frete'] = resultado[19]
-            else:
-                st.warning("Nenhum registro encontrado com esse ID.")
-            cursor.close()
-            conn.close()
-        except mysql.connector.Error as err:
-            st.error(f"Erro ao buscar dados: {err}")
+        conn = conectar_banco()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                query = """
+                    SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
+                           minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+                    FROM tela_inicial 
+                    WHERE id = %s
+                """
+                cursor.execute(query, (id_registro,))
+                resultado = cursor.fetchone()
+                if resultado:
+                    st.session_state.update({
+                        'data': resultado[0],
+                        'cliente': resultado[1],
+                        'cod_cliente': resultado[2],
+                        'motorista': resultado[3],
+                        'cpf_motorista': resultado[4],
+                        'placa': resultado[5],
+                        'perfil_vei': resultado[6],
+                        'minuta_ot': resultado[7],
+                        'id_carga_cvia': resultado[8],
+                        'cubagem': resultado[9],
+                        'rot_1': resultado[10],
+                        'rot_2': resultado[11],
+                        'cid_1': resultado[12],
+                        'cid_2': resultado[13],
+                        'mod_1': resultado[14],
+                        'mod_2': resultado[15],
+                        'valor_carga': resultado[16],
+                        'descarga': resultado[17],
+                        'adiantamento': resultado[18],
+                        'valor_frete': resultado[19]
+                    })
+                else:
+                    st.warning("Nenhum registro encontrado com esse ID.")
+                cursor.close()
+                conn.close()
+            except mysql.connector.Error as err:
+                st.error(f"Erro ao buscar dados: {err}")
     else:
         st.warning("Por favor, informe o ID.")
 
 # Função para enviar dados (inserir ou atualizar)
 def submit_data():
-    id_registro = st.session_state.get('id', '')
-    data = st.session_state.get('data', '')
-    cliente = st.session_state.get('cliente', '')
-    cod_cliente = st.session_state.get('cod_cliente', '')
-    motorista = st.session_state.get('motorista', '')
-    cpf_motorista = st.session_state.get('cpf_motorista', '')
-    placa = st.session_state.get('placa', '')
-    perfil_vei = st.session_state.get('perfil_vei', '')
-    minuta_ot = st.session_state.get('minuta_ot', '')
-    id_carga_cvia = st.session_state.get('id_carga_cvia', '')
-    cubagem = st.session_state.get('cubagem', '')
-    rot_1 = st.session_state.get('rot_1', '')
-    rot_2 = st.session_state.get('rot_2', '')
-    cid_1 = st.session_state.get('cid_1', '')
-    cid_2 = st.session_state.get('cid_2', '')
-    mod_1 = st.session_state.get('mod_1', '')
-    mod_2 = st.session_state.get('mod_2', '')
-    valor_carga = st.session_state.get('valor_carga', '')
-    descarga = st.session_state.get('descarga', '')
-    adiantamento = st.session_state.get('adiantamento', '')
-    valor_frete = st.session_state.get('valor_frete', '')
-
-    # Verificando se todos os campos obrigatórios estão preenchidos
     campos_obrigatorios = [
-        data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-        minuta_ot, id_carga_cvia, cubagem, valor_carga, descarga, adiantamento, valor_frete
+        st.session_state.get('data', ''),
+        st.session_state.get('cliente', ''),
+        st.session_state.get('cod_cliente', ''),
+        st.session_state.get('motorista', ''),
+        st.session_state.get('cpf_motorista', ''),
+        st.session_state.get('placa', ''),
+        st.session_state.get('perfil_vei', ''),
+        st.session_state.get('minuta_ot', ''),
+        st.session_state.get('id_carga_cvia', ''),
+        st.session_state.get('cubagem', ''),
+        st.session_state.get('valor_carga', ''),
+        st.session_state.get('descarga', ''),
+        st.session_state.get('adiantamento', ''),
+        st.session_state.get('valor_frete', '')
     ]
     
     if all(campos_obrigatorios):
-        try:
-            conn = mysql.connector.connect(
-                user='root',  # Substitua pelo usuário do MySQL
-                password='@Kaclju2125.',  # Substitua pela senha do MySQL
-                host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-                port=19156,  # Porta gerada pelo Ngrok
-                database='bd_srtransporte'  # Nome do banco de dados
-            )
-            cursor = conn.cursor()
-            if id_registro:
-                query = """
-                    UPDATE tela_inicial 
-                    SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s
-                    , minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
-                    WHERE id = %s
-                """
+        conn = conectar_banco()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                id_registro = st.session_state.get('id', '')
                 values = (
-                    data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-                    minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, 
-                    valor_carga, descarga, adiantamento, valor_frete, id_registro
+                    st.session_state['data'], st.session_state['cliente'], st.session_state['cod_cliente'],
+                    st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
+                    st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
+                    st.session_state['cubagem'], st.session_state['rot_1'], st.session_state['rot_2'],
+                    st.session_state['cid_1'], st.session_state['cid_2'], st.session_state['mod_1'],
+                    st.session_state['mod_2'], st.session_state['valor_carga'], st.session_state['descarga'],
+                    st.session_state['adiantamento'], st.session_state['valor_frete']
                 )
-            else:
-                query = """
-                    INSERT INTO tela_inicial 
-                    (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                values = (
-                    data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-                    minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, 
-                    valor_carga, descarga, adiantamento, valor_frete
-                )
-            cursor.execute(query, values)
-            conn.commit()
-            if not id_registro:
-                id_registro = cursor.lastrowid
-            cursor.close()
-            conn.close()
-            st.success("Dados salvos com sucesso!")
-            st.session_state.clear()
-            st.session_state['id'] = id_registro
-            st.experimental_rerun()
-        except Exception as e:
-            st.error(f"Erro ao salvar dados: {str(e)}")
+                if id_registro:
+                    query = """
+                        UPDATE tela_inicial 
+                        SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
+                            minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                        WHERE id = %s
+                    """
+                    cursor.execute(query, values + (id_registro,))
+                else:
+                    query = """
+                        INSERT INTO tela_inicial 
+                        (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(query, values)
+                    id_registro = cursor.lastrowid
+                conn.commit()
+                cursor.close()
+                conn.close()
+                st.success("Dados salvos com sucesso!")
+                st.session_state['id'] = id_registro
+                st.experimental_rerun()
+            except Exception as e:
+                st.error(f"Erro ao salvar dados: {str(e)}")
     else:
         st.warning("Por favor, preencha todos os campos obrigatórios.")
 
@@ -218,16 +198,19 @@ if 'opcao' not in st.session_state:
 st.sidebar.title("Menu")
 if st.sidebar.button("Novo Cadastro"):
     st.session_state['opcao'] = "Novo Cadastro"
-if st.sidebar.button("Consulta"):
-    st.session_state['opcao'] = "Consulta"
+    st.session_state.clear()
+if st.sidebar.button("Consulta/Edição"):
+    st.session_state['opcao'] = "Consulta/Edição"
+    st.session_state.clear()
 
-# Tela de Consulta
-if st.session_state['opcao'] == "Consulta":
-    st.title("Consulta de Lançamentos")
-    id_filtro = st.text_input("Filtrar por ID")
+# Tela de Consulta/Edição
+if st.session_state['opcao'] == "Consulta/Edição":
+    st.title("Consulta/Edição de Lançamentos")
+    id_registro = st.text_input("Informe o ID do lançamento para edição", key='id_edicao')
+    if st.button("Buscar Lançamento"):
+        buscar_lancamento_por_id(id_registro)
+    
     df = buscar_todos_lancamentos()
-    if id_filtro:
-        df = df[df['ID'] == int(id_filtro)]
     if not df.empty:
         st.dataframe(df, height=500, use_container_width=True)
     else:
@@ -235,7 +218,7 @@ if st.session_state['opcao'] == "Consulta":
 
 # Tela de Novo Cadastro
 elif st.session_state['opcao'] == "Novo Cadastro":
-    st.title("Cadastro de carregamento")
+    st.title("Cadastro de Carregamento")
     col1, col2 = st.columns([4, 1])
     with col1:
         id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id')
