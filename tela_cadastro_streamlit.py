@@ -288,7 +288,7 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
     with col1:
         id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
     with col2:
-        filtro_data = st.date_input("Filtrar por data de lançamento", value=st.session_state.get('filtro_data',''), key='filtro_data')
+        filtro_data = st.date_input("Filtrar por data de lançamento", value=st.session_state.get('filtro_data', None), key='filtro_data')
     
     if st.button("Buscar"):
         if id_registro:
@@ -389,7 +389,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
     
     #data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
-    data = st.date_input("Data", value=st.session_state.get('data',''), key='filtro_data')
+    data = st.date_input("Data", value=datetima.now().date(), key='filtro_data')
     
     col1, col2, col3 = st.columns(3)
     with col1:
