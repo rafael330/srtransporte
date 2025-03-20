@@ -193,15 +193,59 @@ def safe_index(options, value):
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
     st.session_state['opcao'] = "Novo Cadastro"
+if 'id' not in st.session_state:
+    st.session_state['id'] = ''
+if 'data' not in st.session_state:
+    st.session_state['data'] = ''
+if 'cliente' not in st.session_state:
+    st.session_state['cliente'] = ''
+if 'cod_cliente' not in st.session_state:
+    st.session_state['cod_cliente'] = ''
+if 'motorista' not in st.session_state:
+    st.session_state['motorista'] = ''
+if 'cpf_motorista' not in st.session_state:
+    st.session_state['cpf_motorista'] = ''
+if 'placa' not in st.session_state:
+    st.session_state['placa'] = ''
+if 'perfil_vei' not in st.session_state:
+    st.session_state['perfil_vei'] = ''
+if 'minuta_ot' not in st.session_state:
+    st.session_state['minuta_ot'] = ''
+if 'id_carga_cvia' not in st.session_state:
+    st.session_state['id_carga_cvia'] = ''
+if 'cubagem' not in st.session_state:
+    st.session_state['cubagem'] = ''
+if 'rot_1' not in st.session_state:
+    st.session_state['rot_1'] = ''
+if 'rot_2' not in st.session_state:
+    st.session_state['rot_2'] = ''
+if 'cid_1' not in st.session_state:
+    st.session_state['cid_1'] = ''
+if 'cid_2' not in st.session_state:
+    st.session_state['cid_2'] = ''
+if 'mod_1' not in st.session_state:
+    st.session_state['mod_1'] = ''
+if 'mod_2' not in st.session_state:
+    st.session_state['mod_2'] = ''
+if 'valor_carga' not in st.session_state:
+    st.session_state['valor_carga'] = ''
+if 'descarga' not in st.session_state:
+    st.session_state['descarga'] = ''
+if 'adiantamento' not in st.session_state:
+    st.session_state['adiantamento'] = ''
+if 'valor_frete' not in st.session_state:
+    st.session_state['valor_frete'] = ''
 
 # Configurando a barra lateral com botões
 st.sidebar.title("Menu")
 if st.sidebar.button("Novo Cadastro"):
     st.session_state['opcao'] = "Novo Cadastro"
     st.session_state.clear()
+    st.session_state['opcao'] = "Novo Cadastro"  # Re-inicializa a opção
 if st.sidebar.button("Consulta/Edição"):
     st.session_state['opcao'] = "Consulta/Edição"
     st.session_state.clear()
+    st.session_state['opcao'] = "Consulta/Edição"  # Re-inicializa a opção
 
 # Tela de Consulta/Edição
 if st.session_state['opcao'] == "Consulta/Edição":
