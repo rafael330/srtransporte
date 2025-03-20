@@ -282,12 +282,10 @@ if st.sidebar.button("Consulta de Cadastro"):
 if st.session_state['opcao'] == "Consulta de Cadastro":
     st.title("Consulta de Cadastro")
     
-    col1, col2 = st.columns(2)
+    col1 = st.columns(2)
     with col1:
         id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
-    with col2:
-        filtro_data = st.date_input("Filtrar por data de lançamento", value=st.session_state.get('filtro_data', None), key='filtro_data')
-    
+        
     if st.button("Buscar"):
         if id_registro:
             df = buscar_todos_lancamentos(filtro_id=id_registro)        
