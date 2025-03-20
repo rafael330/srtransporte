@@ -7,155 +7,332 @@ from datetime import datetime
 def conectar_banco():
     try:
         conn = mysql.connector.connect(
-            user='rafael_logitech',  
-            password='admin',  
-            host='0.tcp.sa.ngrok.io',  
-            port=11804,  
-            database='bd_srtransporte'  
+            user='rafael_logitech',  # Usuário do MySQL
+            password='admin',  # Senha do MySQL
+            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
+            port=11804,  # Porta gerada pelo Ngrok
+            database='bd_srtransporte'  # Nome do banco de dados
         )
         return conn
     except mysql.connector.Error as err:
         st.error(f"Erro ao conectar ao banco de dados: {err}")
         return None
 
-# Função para buscar motoristas e seus CPFs
-def buscar_motoristas():
+# Função para buscar clientes e seus códigos
+def buscar_clientes():
     conn = conectar_banco()
     if conn:
         try:
             cursor = conn.cursor()
-            query = "SELECT nome, cpf FROM cad_mot"
+            query = "SELECT cliente, cod_cliente FROM cad_cliente"
             cursor.execute(query)
             resultados = cursor.fetchall()
             cursor.close()
             conn.close()
-            return {nome: cpf for nome, cpf in resultados}
+            return {cliente: cod_cliente for cliente, cod_cliente in resultados}
         except mysql.connector.Error as err:
-            st.error(f"Erro ao buscar motoristas: {err}")
+            st.error(f"Erro ao buscar clientes: {err}")
+    return {}
+
+# Função para buscar placas e perfis de veículos
+def buscar_placas():
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT placa, perfil FROM cad_vei"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return {placa: perfil for placa, perfil in resultados}
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar placas: {err}")
     return {}
 
 # Função para buscar rotas e cidades
-def buscar_rotas_cidades():
+def buscar_rotas():
     conn = conectar_banco()
     if conn:
         try:
             cursor = conn.cursor()
-            query = "SELECT DISTINCT rota, cidade FROM cad_rota"
+            query = "SELECT rota, cidade FROM cad_rota"
             cursor.execute(query)
             resultados = cursor.fetchall()
             cursor.close()
             conn.close()
-            return resultados
+            return {rota: cidade for rota, cidade in resultados}
         except mysql.connector.Error as err:
-            st.error(f"Erro ao buscar rotas e cidades: {err}")
-    return []
+            st.error(f"Erro ao buscar rotas: {err}")
+    return {}
 
-    # Tela de Novo Cadastro
-    elif st.session_state['opcao'] == "Novo Cadastro":
-        st.title("Novo Cadastro de Carregamento")
+# Função para buscar todos os lançamentos no banco de dados
+def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = """
+                SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot,
+                       id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+                FROM tela_inicial
+            """
+            if filtro_id:
+                query += " WHERE id = %s"
+                cursor.execute(query, (filtro_id,))
+            elif filtro_data:
+                query += " WHERE data = %s"
+                cursor.execute(query, (filtro_data,))
+            else:
+                cursor.execute(query)
+            resultados = cursor.fetchall()
+            colunas = [
+                'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
+                'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
+                'Descarga', 'Adiantamento', 'Valor do Frete'
+            ]
+            df = pd.DataFrame(resultados, columns=colunas)
+            cursor.close()
+            conn.close()
+            return df
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar dados: {err}")
+    return pd.DataFrame()
+
+# Função para enviar dados (inserir ou atualizar)
+def submit_data():
+    campos_obrigatorios = [
+        st.session_state.get('data', ''),
+        st.session_state.get('cliente', ''),
+        st.session_state.get('cod_cliente', ''),
+        st.session_state.get('motorista', ''),
+        st.session_state.get('cpf_motorista', ''),
+        st.session_state.get('placa', ''),
+        st.session_state.get('perfil_vei', ''),
+        st.session_state.get('minuta_ot', ''),
+        st.session_state.get('id_carga_cvia', ''),
+        st.session_state.get('cubagem', ''),
+        st.session_state.get('valor_carga', ''),
+        st.session_state.get('descarga', ''),
+        st.session_state.get('adiantamento', ''),
+        st.session_state.get('valor_frete', '')
+    ]
     
-        # Buscar motoristas e rotas
-        motoristas = buscar_motoristas()
-        rotas_cidades = buscar_rotas_cidades()
+    if all(campos_obrigatorios):
+        conn = conectar_banco()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                id_registro = st.session_state.get('id', '')
+                values = (
+                    st.session_state['data'], st.session_state['cliente'], st.session_state['cod_cliente'],
+                    st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
+                    st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
+                    st.session_state['cubagem'], st.session_state['rot_1'], st.session_state['rot_2'],
+                    st.session_state['cid_1'], st.session_state['cid_2'], st.session_state['mod_1'],
+                    st.session_state['mod_2'], st.session_state['valor_carga'], st.session_state['descarga'],
+                    st.session_state['adiantamento'], st.session_state['valor_frete']
+                )
+                if id_registro:
+                    query = """
+                        UPDATE tela_inicial 
+                        SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
+                            minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                        WHERE id = %s
+                    """
+                    cursor.execute(query, values + (id_registro,))
+                else:
+                    query = """
+                        INSERT INTO tela_inicial 
+                        (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(query, values)
+                    id_registro = cursor.lastrowid
+                conn.commit()
+                cursor.close()
+                conn.close()
+                st.success("Dados salvos com sucesso!")
+                st.session_state['id'] = id_registro
+                st.experimental_rerun()
+            except Exception as e:
+                st.error(f"Erro ao salvar dados: {str(e)}")
+    else:
+        st.warning("Por favor, preencha todos os campos obrigatórios.")
+
+# Inicializando o session_state
+if 'opcao' not in st.session_state:
+    st.session_state['opcao'] = "Novo Cadastro"
+if 'id' not in st.session_state:
+    st.session_state['id'] = ''
+if 'data' not in st.session_state:
+    st.session_state['data'] = ''
+if 'cliente' not in st.session_state:
+    st.session_state['cliente'] = ''
+if 'cod_cliente' not in st.session_state:
+    st.session_state['cod_cliente'] = ''
+if 'motorista' not in st.session_state:
+    st.session_state['motorista'] = ''
+if 'cpf_motorista' not in st.session_state:
+    st.session_state['cpf_motorista'] = ''
+if 'placa' not in st.session_state:
+    st.session_state['placa'] = ''
+if 'perfil_vei' not in st.session_state:
+    st.session_state['perfil_vei'] = ''
+if 'minuta_ot' not in st.session_state:
+    st.session_state['minuta_ot'] = ''
+if 'id_carga_cvia' not in st.session_state:
+    st.session_state['id_carga_cvia'] = ''
+if 'cubagem' not in st.session_state:
+    st.session_state['cubagem'] = ''
+if 'rot_1' not in st.session_state:
+    st.session_state['rot_1'] = ''
+if 'rot_2' not in st.session_state:
+    st.session_state['rot_2'] = ''
+if 'cid_1' not in st.session_state:
+    st.session_state['cid_1'] = ''
+if 'cid_2' not in st.session_state:
+    st.session_state['cid_2'] = ''
+if 'mod_1' not in st.session_state:
+    st.session_state['mod_1'] = ''
+if 'mod_2' not in st.session_state:
+    st.session_state['mod_2'] = ''
+if 'valor_carga' not in st.session_state:
+    st.session_state['valor_carga'] = ''
+if 'descarga' not in st.session_state:
+    st.session_state['descarga'] = ''
+if 'adiantamento' not in st.session_state:
+    st.session_state['adiantamento'] = ''
+if 'valor_frete' not in st.session_state:
+    st.session_state['valor_frete'] = ''
+
+# Configurando a barra lateral com botões
+st.sidebar.title("Menu")
+if st.sidebar.button("Novo Cadastro"):
+    st.session_state['opcao'] = "Novo Cadastro"
+    st.session_state.clear()
+    st.session_state['opcao'] = "Novo Cadastro"  # Re-inicializa a opção
+if st.sidebar.button("Consulta de Cadastro"):
+    st.session_state['opcao'] = "Consulta de Cadastro"
+    st.session_state.clear()
+    st.session_state['opcao'] = "Consulta de Cadastro"  # Re-inicializa a opção
+
+# Tela de Consulta de Cadastro
+if st.session_state['opcao'] == "Consulta de Cadastro":
+    st.title("Consulta de Cadastro")
     
-        # Coluna Cliente e Código do Cliente
-        col1, col2 = st.columns(2)
-        with col1:
-            cliente = st.selectbox(
-                "Cliente",
-                options=[""] + list(clientes.keys()),
-                index=0,
-                key='cliente'
-            )
-            if cliente:
-                st.session_state['cod_cliente'] = clientes.get(cliente, '')
-        with col2:
-            cod_cliente = st.text_input(
-                "Código do Cliente",
-                value=st.session_state.get('cod_cliente', ''),
-                key='cod_cliente',
-                disabled=True
-            )
+    col1, col2 = st.columns(2)
+    with col1:
+        id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
+    with col2:
+        filtro_data = st.date_input("Filtrar por data de lançamento", key='filtro_data')
+    
+    if st.button("Buscar"):
+        if id_registro:
+            df = buscar_todos_lancamentos(filtro_id=id_registro)
+        elif filtro_data:
+            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%Y-%m-%d'))
+        else:
+            df = buscar_todos_lancamentos()
         
-        # Coluna Motorista e CPF do Motorista
-        col1, col2 = st.columns(2)
-        with col1:
-            motorista = st.selectbox(
-                "Motorista",
-                options=[""] + list(motoristas.keys()),
-                key='motorista'
-            )
-            if motorista:
-                st.session_state['cpf_motorista'] = motoristas.get(motorista, '')
-        with col2:
-            cpf_motorista = st.text_input(
-                "CPF do Motorista",
-                value=st.session_state.get('cpf_motorista', ''),
-                key='cpf_motorista',
-                disabled=True
-            )
-        
-        # Coluna de Placa e Perfil do Veículo
-        col1, col2 = st.columns(2)
-        with col1:
-            placa = st.selectbox(
-                "Placa",
-                options=[""] + list(placas.keys()),
-                index=0,
-                key='placa'
-            )
-            if placa:
-                st.session_state['perfil_vei'] = placas.get(placa, '')
-        with col2:
-            perfil_vei = st.text_input(
-                "Perfil do Veículo",
-                value=st.session_state.get('perfil_vei', ''),
-                key='perfil_vei',
-                disabled=True
-            )
-        
-        # Coluna Minuta OT e ID Carga CVia
-        col1, col2 = st.columns(2)
-        with col1:
-            minuta_ot = st.text_input("Minuta/OT", value=st.session_state.get('minuta_ot', ''), key='minuta_ot')
-        with col2:
-            id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')
-        
-        # Coluna de Valores
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
-        with col2:
-            valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
-        with col3:
-            descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
-        with col4:
-            adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
+        if not df.empty:
+            st.dataframe(df, height=500, use_container_width=True)
+        else:
+            st.warning("Nenhum lançamento encontrado.")
+
+# Tela de Novo Cadastro
+elif st.session_state['opcao'] == "Novo Cadastro":
+    st.title("Novo Cadastro de Carregamento")
     
-        # Coluna Rota, Cidade e Modalidade 1
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            rotas_1 = [r[0] for r in rotas_cidades]
-            rota_1 = st.selectbox("Rota 1", options=[""] + rotas_1, key="rot_1")
-        with col2:
-            cidades_1 = [r[1] for r in rotas_cidades if r[0] == rota_1]
-            cidade_1 = st.selectbox("Cidade 1", options=[""] + cidades_1, key="cid_1")
-        with col3:
-            modalidade_1 = st.selectbox("Modalidade 1", options=["ABA", "VENDA"], key="mod_1")
+    # Buscar clientes, placas e rotas
+    clientes = buscar_clientes()
+    placas = buscar_placas()
+    rotas = buscar_rotas()
     
-        # Coluna Rota, Cidade e Modalidade 2
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            rota_2 = st.selectbox("Rota 2", options=[""] + rotas_1, key="rot_2")
-        with col2:
-            cidades_2 = [r[1] for r in rotas_cidades if r[0] == rota_2]
-            cidade_2 = st.selectbox("Cidade 2", options=[""] + cidades_2, key="cid_2")
-        with col3:
-            modalidade_2 = st.selectbox("Modalidade 2", options=["ABA", "VENDA"], key="mod_2")
+    col1, col2 = st.columns(2)
+    with col1:
+        cliente = st.selectbox(
+            "Cliente",
+            options=[""] + list(clientes.keys()),
+            index=0,
+            key='cliente'
+        )
+        if cliente:
+            st.session_state['cod_cliente'] = clientes.get(cliente, '')
+    with col2:
+        cod_cliente = st.text_input(
+            "Código do Cliente",
+            value=st.session_state.get('cod_cliente', ''),
+            key='cod_cliente',
+            disabled=True
+        )
     
-        # Data e Cubagem
-        data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
-        cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
+    col1, col2 = st.columns(2)
+    with col1:
+        placa = st.selectbox(
+            "Placa",
+            options=[""] + list(placas.keys()),
+            index=0,
+            key='placa'
+        )
+        if placa:
+            st.session_state['perfil_vei'] = placas.get(placa, '')
+    with col2:
+        perfil_vei = st.text_input(
+            "Perfil do Veículo",
+            value=st.session_state.get('perfil_vei', ''),
+            key='perfil_vei',
+            disabled=True
+        )
     
-        if st.button("Enviar"):
-            submit_data()
+    # Inputs para outros campos
+    col1, col2 = st.columns(2)
+    with col1:
+        minuta_ot = st.text_input("Minuta/OT", value=st.session_state.get('minuta_ot', ''), key='minuta_ot')
+    with col2:
+        id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
+    with col2:
+        valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
+    with col2:
+        adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
+    
+    data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
+    
+    # Motorista e CPF com preenchimento automático
+    motorista = st.selectbox("Motorista", options=[""] + list(clientes.keys()), key='motorista')
+    if motorista:
+        st.session_state['cpf_motorista'] = next(
+            (cpf for nome, cpf in buscar_motoristas().items() if nome == motorista), ''
+        )
+    cpf_motorista = st.text_input("CPF do Motorista", value=st.session_state.get('cpf_motorista', ''), key='cpf_motorista')
+    
+    cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
+    
+    # Campos de rota 1 e 2
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        rota_1 = st.selectbox("Rota 1", options=[""] + list(rotas.keys()), key='rot_1')
+    with col2:
+        rota_2 = st.selectbox("Rota 2", options=[""] + list(rotas.keys()), key='rot_2')
+    with col3:
+        cid_1 = st.text_input("Cidade 1", value=st.session_state.get('cid_1', ''), key='cid_1')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        cid_2 = st.text_input("Cidade 2", value=st.session_state.get('cid_2', ''), key='cid_2')
+    with col2:
+        mod_1 = st.text_input("Modalidade 1", value=st.session_state.get('mod_1', ''), key='mod_1')
+    
+    mod_2 = st.text_input("Modalidade 2", value=st.session_state.get('mod_2', ''), key='mod_2')
+    
+    # Botão de Submit
+    if st.button("Salvar"):
+        submit_data()
