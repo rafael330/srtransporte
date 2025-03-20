@@ -282,7 +282,7 @@ if st.sidebar.button("Consulta de Cadastro"):
 if st.session_state['opcao'] == "Consulta de Cadastro":
     st.title("Consulta de Cadastro")
     
-    col1 = st.columns(2)
+    col1 = st.columns(1)
     with col1:
         id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
         
