@@ -306,7 +306,7 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
             st.dataframe(df, height=500, use_container_width=True)
         else:
             st.warning("Nenhum lançamento encontrado.")
-
+            
 # Tela de Novo Cadastro
 elif st.session_state['opcao'] == "Novo Cadastro":
     st.title("Novo Cadastro de Carregamento")
