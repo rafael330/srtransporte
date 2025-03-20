@@ -51,12 +51,12 @@ def buscar_rotas_cidades():
     return []
 
 # Tela de Novo Cadastro
-elif st.session_state['opcao'] == "Novo Cadastro":
-    st.title("Novo Cadastro de Carregamento")
-
-    # Buscar motoristas e rotas
-    motoristas = buscar_motoristas()
-    rotas_cidades = buscar_rotas_cidades()
+    elif st.session_state['opcao'] == "Novo Cadastro":
+        st.title("Novo Cadastro de Carregamento")
+    
+        # Buscar motoristas e rotas
+        motoristas = buscar_motoristas()
+        rotas_cidades = buscar_rotas_cidades()
 
     # Coluna Cliente e Código do Cliente
     col1, col2 = st.columns(2)
