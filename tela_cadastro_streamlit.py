@@ -95,12 +95,7 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
             """
             if filtro_id:
                 query += " WHERE id = %s"
-                cursor.execute(query, (filtro_id,))
-            elif filtro_data:
-                # Converte a data para o formato YYYY-MM-DD
-                data_formatada = filtro_data.strftime("%Y-%m-%d")
-                query += " WHERE data = %s"
-                cursor.execute(query, (data_formatada,))
+                cursor.execute(query, (filtro_id,))            
             else:
                 cursor.execute(query)
             
@@ -295,9 +290,7 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
     
     if st.button("Buscar"):
         if id_registro:
-            df = buscar_todos_lancamentos(filtro_id=id_registro)
-        elif filtro_data:
-            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%Y-%m-%d'))
+            df = buscar_todos_lancamentos(filtro_id=id_registro)        
         else:
             df = buscar_todos_lancamentos()
         
