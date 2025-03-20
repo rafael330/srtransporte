@@ -34,8 +34,56 @@ def buscar_clientes():
             st.error(f"Erro ao buscar clientes: {err}")
     return {}
 
+# Função para buscar motoristas e seus CPFs
+def buscar_motoristas():
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT nome, cpf FROM cad_mot"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return {nome: cpf for nome, cpf in resultados}
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar motoristas: {err}")
+    return {}
+
+# Função para buscar placas e perfis de veículos
+def buscar_placas():
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT placa, perfil FROM cad_vei"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return {placa: perfil for placa, perfil in resultados}
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar placas: {err}")
+    return {}
+
+# Função para buscar rotas e cidades
+def buscar_rotas_cidades():
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT rota, cidade FROM cad_rota"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return resultados
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar rotas e cidades: {err}")
+    return []
+
 # Função para buscar todos os lançamentos no banco de dados
-def buscar_todos_lancamentos(filtro_id=None, filtro_cliente=None):
+def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
     conn = conectar_banco()
     if conn:
         try:
@@ -48,9 +96,11 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_cliente=None):
             if filtro_id:
                 query += " WHERE id = %s"
                 cursor.execute(query, (filtro_id,))
-            elif filtro_cliente:
-                query += " WHERE cliente = %s"
-                cursor.execute(query, (filtro_cliente,))
+            elif filtro_data:
+                # Converte a data para o formato YYYY-MM-DD
+                data_formatada = filtro_data.strftime("%Y-%m-%d")
+                query += " WHERE data = %s"
+                cursor.execute(query, (data_formatada,))
             else:
                 cursor.execute(query)
             
@@ -241,18 +291,13 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
     with col1:
         id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
     with col2:
-        clientes = buscar_clientes()
-        filtro_cliente = st.selectbox(
-            "Filtrar por cliente",
-            options=[""] + list(clientes.keys()),
-            key='filtro_cliente'
-        )
+        filtro_data = st.date_input("Filtrar por data de lançamento", value=st.session_state.get('filtro_data', None), key='filtro_data')
     
     if st.button("Buscar"):
         if id_registro:
             df = buscar_todos_lancamentos(filtro_id=id_registro)
-        elif filtro_cliente:
-            df = buscar_todos_lancamentos(filtro_cliente=filtro_cliente)
+        elif filtro_data:
+            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%Y-%m-%d'))
         else:
             df = buscar_todos_lancamentos()
         
@@ -346,6 +391,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     with col4:
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
     
+    #data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
     data = st.date_input("Data", value=datetime.now().date(), key='filtro_data')
     
     col1, col2, col3 = st.columns(3)
