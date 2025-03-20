@@ -216,7 +216,7 @@ def submit_data():
                 cursor.close()
                 conn.close()
                 st.success("Dados salvos com sucesso!")
-                st.session_state['id'] = id_registro
+                st.session_state.clear()  # Limpa os campos após o envio
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Erro ao salvar dados: {str(e)}")
@@ -306,6 +306,9 @@ if st.session_state['opcao'] == "Consulta de Cadastro":
 # Tela de Novo Cadastro
 elif st.session_state['opcao'] == "Novo Cadastro":
     st.title("Novo Cadastro de Carregamento")
+    
+    # Campo ID (para correções)
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id')
     
     # Buscar clientes, motoristas, placas e rotas
     clientes = buscar_clientes()
