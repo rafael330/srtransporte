@@ -97,14 +97,10 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
                 query += " WHERE id = %s"
                 cursor.execute(query, (filtro_id,))
             elif filtro_data:
-                # Se a coluna `data` no banco for do tipo DATE/DATETIME
+                # Converte a data para o formato YYYY-MM-DD
+                data_formatada = filtro_data.strftime("%Y-%m-%d")
                 query += " WHERE data = %s"
-                cursor.execute(query, (filtro_data,))
-                
-                # Se a coluna `data` no banco for uma string (VARCHAR)
-                # query += " WHERE data = %s"
-                # data_formatada = filtro_data.strftime("%Y-%m-%d")  # ou outro formato
-                # cursor.execute(query, (data_formatada,))
+                cursor.execute(query, (data_formatada,))
             else:
                 cursor.execute(query)
             
