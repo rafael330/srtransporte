@@ -384,8 +384,7 @@ elif st.session_state['opcao'] == "Novo Cadastro":
         descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
     with col4:
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
-    
-    #data = st.text_input("Data", value=st.session_state.get('data', ''), key='data')
+
     data = st.date_input("Data", value=datetime.now().date(), key='filtro_data')
     
     col1, col2, col3 = st.columns(3)
