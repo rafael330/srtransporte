@@ -51,7 +51,7 @@ def buscar_placas():
     return {}
 
 # Função para buscar todos os lançamentos no banco de dados
-def buscar_todos_lancamentos(filtro_data=None):
+def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
     conn = conectar_banco()
     if conn:
         try:
@@ -61,7 +61,10 @@ def buscar_todos_lancamentos(filtro_data=None):
                        id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial
             """
-            if filtro_data:
+            if filtro_id:
+                query += " WHERE id = %s"
+                cursor.execute(query, (filtro_id,))
+            elif filtro_data:
                 query += " WHERE data = %s"
                 cursor.execute(query, (filtro_data,))
             else:
@@ -248,20 +251,25 @@ if st.sidebar.button("Consulta de Cadastro"):
 # Tela de Consulta de Cadastro
 if st.session_state['opcao'] == "Consulta de Cadastro":
     st.title("Consulta de Cadastro")
-    id_registro = st.text_input("Informe o ID do lançamento para edição", key='id_edicao')
-    if st.button("Buscar Lançamento"):
-        buscar_lancamento_por_id(id_registro)
     
-    filtro_data = st.date_input("Filtrar por data de lançamento", key='filtro_data')
-    if st.button("Aplicar Filtro"):
-        df = buscar_todos_lancamentos(filtro_data.strftime('%Y-%m-%d'))
-    else:
-        df = buscar_todos_lancamentos()
+    col1, col2 = st.columns(2)
+    with col1:
+        id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
+    with col2:
+        filtro_data = st.date_input("Filtrar por data de lançamento", key='filtro_data')
     
-    if not df.empty:
-        st.dataframe(df, height=500, use_container_width=True)
-    else:
-        st.warning("Nenhum lançamento encontrado.")
+    if st.button("Buscar"):
+        if id_registro:
+            df = buscar_todos_lancamentos(filtro_id=id_registro)
+        elif filtro_data:
+            df = buscar_todos_lancamentos(filtro_data=filtro_data.strftime('%Y-%m-%d'))
+        else:
+            df = buscar_todos_lancamentos()
+        
+        if not df.empty:
+            st.dataframe(df, height=500, use_container_width=True)
+        else:
+            st.warning("Nenhum lançamento encontrado.")
 
 # Tela de Novo Cadastro
 elif st.session_state['opcao'] == "Novo Cadastro":
