@@ -161,6 +161,8 @@ def buscar_lancamento_por_id(id_registro):
         st.warning("Por favor, informe o ID.")
 
 # Função para enviar dados (inserir ou atualizar)
+from datetime import datetime
+
 def submit_data():
     # Lista de campos obrigatórios
     campos_obrigatorios = {
@@ -178,15 +180,20 @@ def submit_data():
         'valor_frete': st.session_state.get('valor_frete', '')
     }
 
-    # Log para depuração
-    st.write(f"Valor da data no session_state: {st.session_state.get('data', '')}")
-
     # Verifica se todos os campos obrigatórios foram preenchidos
     campos_vazios = [campo for campo, valor in campos_obrigatorios.items() if not valor]
     
     if campos_vazios:
         st.warning(f"Os seguintes campos obrigatórios não foram preenchidos: {', '.join(campos_vazios)}")
         return  # Interrompe a execução se houver campos obrigatórios vazios
+
+    # Converte a data do formato brasileiro (dd/mm/aaaa) para o formato MySQL (aaaa-mm-dd)
+    try:
+        data_brasileira = st.session_state['data']
+        data_mysql = datetime.strptime(data_brasileira, "%d/%m/%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        st.error("Formato de data inválido. Use o formato dd/mm/aaaa.")
+        return
 
     # Conecta ao banco de dados
     conn = conectar_banco()
@@ -200,7 +207,8 @@ def submit_data():
 
         # Valores a serem inseridos ou atualizados
         values = (
-            st.session_state['data'], st.session_state['cliente'], st.session_state['cod_cliente'],
+            data_mysql,  # Usa a data convertida para o formato MySQL
+            st.session_state['cliente'], st.session_state['cod_cliente'],
             st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
             st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
             st.session_state['cubagem'], st.session_state['rot_1'], st.session_state.get('rot_2', ''),
@@ -239,7 +247,7 @@ def submit_data():
         st.error(f"Erro ao salvar dados no banco de dados: {err}")
     except Exception as e:
         st.error(f"Erro inesperado: {str(e)}")
-
+        
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
     st.session_state['opcao'] = "Novo Cadastro"
