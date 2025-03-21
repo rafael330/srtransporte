@@ -18,6 +18,34 @@ def conectar_banco():
         st.error(f"Erro ao conectar ao banco de dados: {err}")
         return None
 
+def salvar_dados(tabela, campos, valores, id_registro):
+    conn = conectar_banco()
+    if not conn:
+        st.error("Erro ao conectar ao banco de dados.")
+        return
+
+    try:
+        cursor = conn.cursor()
+        if id_registro:
+            # Atualiza o registro existente
+            query = f"UPDATE {tabela} SET {', '.join([f'{campo} = %s' for campo in campos])} WHERE id = %s"
+            cursor.execute(query, valores + (id_registro,))
+        else:
+            # Insere um novo registro
+            query = f"INSERT INTO {tabela} ({', '.join(campos)}) VALUES ({', '.join(['%s'] * len(campos))})"
+            cursor.execute(query, valores)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        st.success("Dados salvos com sucesso!")
+        st.session_state.clear()  # Limpa os campos após o envio
+        st.experimental_rerun()  # Recarrega a página para limpar o formulário
+    except mysql.connector.Error as err:
+        st.error(f"Erro ao salvar dados no banco de dados: {err}")
+    except Exception as e:
+        st.error(f"Erro inesperado: {str(e)}")
+
 # Função para buscar clientes e seus códigos
 def buscar_clientes():
     conn = conectar_banco()
