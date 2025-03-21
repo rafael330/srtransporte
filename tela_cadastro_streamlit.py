@@ -106,7 +106,7 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
                 'Descarga', 'Adiantamento', 'Valor do Frete'
             ]
             df = pd.DataFrame(resultados, columns=colunas)
-            df['ID'] = df['ID'].astype(int)
+            df['ID'] = df['ID'].str.replace(',','')
             cursor.close()
             conn.close()
             return df
