@@ -246,7 +246,98 @@ def submit_data():
         st.error(f"Erro ao salvar dados no banco de dados: {err}")
     except Exception as e:
         st.error(f"Erro inesperado: {str(e)}")
-        
+
+# Função para buscar cargas
+def buscar_cargas():
+    conn = conectar_banco()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            query = "SELECT DISTINCT id_carga_cvia FROM tela_inicial"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return [carga[0] for carga in resultados]
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao buscar cargas: {err}")
+    return []
+
+# Função para cadastro de cliente
+def cadastro_cliente():
+    st.title("Cadastro de Cliente")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_cliente')
+    cod_cliente = st.text_input("Código do Cliente", key='cod_cliente')
+    cliente = st.text_input("Cliente", key='cliente')
+    cnpj = st.text_input("CNPJ", key='cnpj')
+
+    if st.button("Salvar"):
+        campos = ['cod_cliente', 'cliente', 'cnpj']
+        valores = (cod_cliente, cliente, cnpj)
+        salvar_dados('cad_cliente', campos, valores, id_registro)
+
+# Função para cadastro de motorista
+def cadastro_motorista():
+    st.title("Cadastro de Motorista")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_motorista')
+    motorista = st.text_input("Motorista", key='motorista')
+    cpf = st.text_input("CPF", key='cpf')
+    rg = st.text_input("RG", key='rg')
+
+    if st.button("Salvar"):
+        campos = ['nome', 'cpf', 'rg']
+        valores = (motorista, cpf, rg)
+        salvar_dados('cad_mot', campos, valores, id_registro)
+
+# Função para cadastro de rota
+def cadastro_rota():
+    st.title("Cadastro de Rota")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_rota')
+    rota = st.text_input("Rota", key='rota')
+    cidade = st.text_input("Cidade", key='cidade')
+    regiao = st.text_input("Região", key='regiao')
+    cep_unico = st.text_input("CEP Único", key='cep_unico')
+
+    if st.button("Salvar"):
+        campos = ['rota', 'cidade', 'regiao', 'cep_unico']
+        valores = (rota, cidade, regiao, cep_unico)
+        salvar_dados('cad_rota', campos, valores, id_registro)
+
+# Função para cadastro de veículo
+def cadastro_veiculo():
+    st.title("Cadastro de Veículo")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_veiculo')
+    placa = st.text_input("Placa", key='placa')
+    perfil = st.text_input("Perfil", key='perfil')
+    proprietario = st.text_input("Proprietário", key='proprietario')
+    cubagem = st.text_input("Cubagem", key='cubagem')
+
+    if st.button("Salvar"):
+        campos = ['placa', 'perfil', 'proprietario', 'cubagem']
+        valores = (placa, perfil, proprietario, cubagem)
+        salvar_dados('cad_vei', campos, valores, id_registro)
+
+# Função para cadastro de frete extra
+def cadastro_frete_extra():
+    st.title("Cadastro de Frete Extra")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_frete_extra')
+    cliente = st.selectbox("Cliente", options=[""] + list(buscar_clientes().keys()), key='cliente_frete')
+    data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data_frete')
+    id_carga = st.selectbox("ID Carga", options=[""] + buscar_cargas(), key='id_carga_frete')
+    rota = st.selectbox("Rota", options=[""] + [rota[1] for rota in buscar_rotas_cidades()], key='rota_frete')
+    entrega_final = st.text_input("Entrega Final", key='entrega_final')
+    valor = st.text_input("Valor", key='valor_frete')
+
+    if st.button("Salvar"):
+        campos = ['cliente', 'data', 'id_carga', 'rota', 'entrega_final', 'valor']
+        valores = (cliente, data, id_carga, rota, entrega_final, valor)
+        salvar_dados('cad_frete_extra', campos, valores, id_registro)
+
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
     st.session_state['opcao'] = "Novo Cadastro"
@@ -295,39 +386,14 @@ if 'valor_frete' not in st.session_state:
 
 # Configurando a barra lateral com botões
 st.sidebar.title("Menu")
-if st.sidebar.button("Novo Cadastro"):
-    st.session_state['opcao'] = "Novo Cadastro"
-    st.session_state.clear()
-    st.session_state['opcao'] = "Novo Cadastro"  # Re-inicializa a opção
-if st.sidebar.button("Consulta de Cadastro"):
-    st.session_state['opcao'] = "Consulta de Cadastro"
-    st.session_state.clear()
-    st.session_state['opcao'] = "Consulta de Cadastro"  # Re-inicializa a opção
+opcao = st.sidebar.radio("Selecione uma opção", [
+    "Novo Cadastro", "Consulta de Cadastro", "Cadastro de Cliente", 
+    "Cadastro de Motorista", "Cadastro de Rota", "Cadastro de Veículo", 
+    "Cadastro de Frete Extra"
+])
 
-# Tela de Consulta de Cadastro
-if st.session_state['opcao'] == "Consulta de Cadastro":
-    st.title("Consulta de Cadastro")
-    
-    # Campo para inserir o ID do lançamento
-    id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
-    
-    # Botão para buscar os lançamentos
-    if st.button("Buscar"):
-        if id_registro:
-            # Busca pelo ID do lançamento
-            df = buscar_todos_lancamentos(filtro_id=id_registro)
-        else:
-            # Busca todos os lançamentos
-            df = buscar_todos_lancamentos()
-        
-        # Exibe os resultados
-        if not df.empty:
-            st.dataframe(df, height=500, use_container_width=True)
-        else:
-            st.warning("Nenhum lançamento encontrado.")
-
-# Tela de Novo Cadastro
-elif st.session_state['opcao'] == "Novo Cadastro":
+# Redirecionamento para a tela selecionada
+if opcao == "Novo Cadastro":
     st.title("Novo Cadastro de Carregamento")
     
     # Campo ID (para correções)
@@ -464,3 +530,39 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     
     if st.button("Enviar"):
         submit_data()
+
+elif opcao == "Consulta de Cadastro":
+    st.title("Consulta de Cadastro")
+    
+    # Campo para inserir o ID do lançamento
+    id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
+    
+    # Botão para buscar os lançamentos
+    if st.button("Buscar"):
+        if id_registro:
+            # Busca pelo ID do lançamento
+            df = buscar_todos_lancamentos(filtro_id=id_registro)
+        else:
+            # Busca todos os lançamentos
+            df = buscar_todos_lancamentos()
+        
+        # Exibe os resultados
+        if not df.empty:
+            st.dataframe(df, height=500, use_container_width=True)
+        else:
+            st.warning("Nenhum lançamento encontrado.")
+
+elif opcao == "Cadastro de Cliente":
+    cadastro_cliente()
+
+elif opcao == "Cadastro de Motorista":
+    cadastro_motorista()
+
+elif opcao == "Cadastro de Rota":
+    cadastro_rota()
+
+elif opcao == "Cadastro de Veículo":
+    cadastro_veiculo()
+
+elif opcao == "Cadastro de Frete Extra":
+    cadastro_frete_extra()
