@@ -223,14 +223,13 @@ def submit_data():
             st.session_state.get('adiantamento', ''), st.session_state['valor_frete']
         )
 
-        # Se houver um ID, atualiza o registro existente
-        if id_registro:
-            query = """
-                INSERT INTO tela_inicial 
-                (id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, values)
+        # Query de inserção
+        query = """
+            INSERT INTO tela_inicial 
+            (id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, values)
 
         conn.commit()  # Confirma a transação
         cursor.close()
@@ -242,8 +241,7 @@ def submit_data():
     except mysql.connector.Error as err:
         st.error(f"Erro ao salvar dados no banco de dados: {err}")
     except Exception as e:
-        st.error(f"Erro inesperado: {str(e)}")
-        
+        st.error(f"Erro inesperado: {str(e)}")        
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
     st.session_state['opcao'] = "Novo Cadastro"
