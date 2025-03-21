@@ -412,7 +412,8 @@ elif st.session_state['opcao'] == "Novo Cadastro":
     with col4:
         adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
 
-    data = st.date_input("Data", key='filtro_data')
+    # Campo de data no formato brasileiro (dd/mm/aaaa)
+    data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data')
     
     col1, col2, col3 = st.columns(3)
     with col1:
