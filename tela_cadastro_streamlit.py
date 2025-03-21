@@ -304,6 +304,11 @@ def cadastro_cliente():
         campos = ['cod_cliente', 'cliente', 'cnpj']
         valores = (cod_cliente, cliente, cnpj)
         salvar_dados('cad_cliente', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_cliente'] = ''
+        st.session_state['cod_cliente'] = ''
+        st.session_state['cliente'] = ''
+        st.session_state['cnpj'] = ''
 
 # Função para cadastro de motorista
 def cadastro_motorista():
@@ -318,6 +323,11 @@ def cadastro_motorista():
         campos = ['nome', 'cpf', 'rg']
         valores = (motorista, cpf, rg)
         salvar_dados('cad_mot', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_motorista'] = ''
+        st.session_state['motorista'] = ''
+        st.session_state['cpf'] = ''
+        st.session_state['rg'] = ''
 
 # Função para cadastro de rota
 def cadastro_rota():
@@ -333,6 +343,12 @@ def cadastro_rota():
         campos = ['rota', 'cidade', 'regiao', 'cep_unico']
         valores = (rota, cidade, regiao, cep_unico)
         salvar_dados('cad_rota', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_rota'] = ''
+        st.session_state['rota'] = ''
+        st.session_state['cidade'] = ''
+        st.session_state['regiao'] = ''
+        st.session_state['cep_unico'] = ''
 
 # Função para cadastro de veículo
 def cadastro_veiculo():
@@ -348,6 +364,12 @@ def cadastro_veiculo():
         campos = ['placa', 'perfil', 'proprietario', 'cubagem']
         valores = (placa, perfil, proprietario, cubagem)
         salvar_dados('cad_vei', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_veiculo'] = ''
+        st.session_state['placa'] = ''
+        st.session_state['perfil'] = ''
+        st.session_state['proprietario'] = ''
+        st.session_state['cubagem'] = ''
 
 # Função para cadastro de frete extra
 def cadastro_frete_extra():
@@ -365,6 +387,14 @@ def cadastro_frete_extra():
         campos = ['cliente', 'data', 'id_carga', 'rota', 'entrega_final', 'valor']
         valores = (cliente, data, id_carga, rota, entrega_final, valor)
         salvar_dados('cad_frete_extra', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_frete_extra'] = ''
+        st.session_state['cliente_frete'] = ''
+        st.session_state['data_frete'] = ''
+        st.session_state['id_carga_frete'] = ''
+        st.session_state['rota_frete'] = ''
+        st.session_state['entrega_final'] = ''
+        st.session_state['valor_frete'] = ''
 
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
