@@ -205,10 +205,16 @@ def submit_data():
         cursor = conn.cursor()
         id_registro = st.session_state.get('id', '')
 
+        # Se for um novo registro, gera um ID único
+        if not id_registro:
+            cursor.execute("SELECT MAX(id) FROM tela_inicial")
+            max_id = cursor.fetchone()[0]
+            id_registro = max_id + 1 if max_id else 1  # Se a tabela estiver vazia, começa com 1
+
         # Valores a serem inseridos ou atualizados
         values = (
-            data_mysql,  # Usa a data convertida para o formato MySQL
-            st.session_state['cliente'], st.session_state['cod_cliente'],
+            id_registro,  # Inclui o ID gerado
+            data_mysql, st.session_state['cliente'], st.session_state['cod_cliente'],
             st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
             st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
             st.session_state['cubagem'], st.session_state['rot_1'], st.session_state.get('rot_2', ''),
@@ -220,21 +226,11 @@ def submit_data():
         # Se houver um ID, atualiza o registro existente
         if id_registro:
             query = """
-                UPDATE tela_inicial 
-                SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
-                    minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
-                WHERE id = %s
-            """
-            cursor.execute(query, values + (id_registro,))
-        else:
-            # Caso contrário, insere um novo registro
-            query = """
                 INSERT INTO tela_inicial 
-                (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                (id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(query, values)
-            id_registro = cursor.lastrowid  # Obtém o ID do novo registro
 
         conn.commit()  # Confirma a transação
         cursor.close()
