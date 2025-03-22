@@ -39,8 +39,10 @@ def salvar_dados(tabela, campos, valores, id_registro):
         cursor.close()
         conn.close()
         st.success("Dados salvos com sucesso!")
-        st.session_state.clear()  # Limpa os campos após o envio
-        st.experimental_rerun()  # Recarrega a página para limpar o formulário
+        
+        # Limpa o session_state após o salvamento
+        st.session_state.clear()  # Limpa todos os campos
+        st.experimental_rerun()  # Recarrega a página para garantir que os campos fiquem vazios
     except mysql.connector.Error as err:
         st.error(f"Erro ao salvar dados no banco de dados: {err}")
     except Exception as e:
