@@ -10,7 +10,7 @@ def conectar_banco():
             user='rafael_logitech',  # Usuário do MySQL
             password='admin',  # Senha do MySQL
             host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=15827,  # Porta gerada pelo Ngrok
+            port=18324,  # Porta gerada pelo Ngrok
             database='bd_srtransporte'  # Nome do banco de dados
         )
         return conn
