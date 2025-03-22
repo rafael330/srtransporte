@@ -305,10 +305,10 @@ def cadastro_cliente():
         valores = (cod_cliente, cliente, cnpj)
         salvar_dados('cad_cliente', campos, valores, id_registro)
         # Limpa os campos após o salvamento
-        st.session_state['id_cliente'] = ''
-        st.session_state['cod_cliente'] = ''
-        st.session_state['cliente'] = ''
-        st.session_state['cnpj'] = ''
+        st.session_state['id_cliente'] = None
+        st.session_state['cod_cliente'] = None
+        st.session_state['cliente'] = None
+        st.session_state['cnpj'] = None
 
 # Função para cadastro de motorista
 def cadastro_motorista():
@@ -324,10 +324,10 @@ def cadastro_motorista():
         valores = (motorista, cpf, rg)
         salvar_dados('cad_mot', campos, valores, id_registro)
         # Limpa os campos após o salvamento
-        st.session_state['id_motorista'] = ''
-        st.session_state['motorista'] = ''
-        st.session_state['cpf'] = ''
-        st.session_state['rg'] = ''
+        st.session_state['id_motorista'] = None
+        st.session_state['motorista'] = None
+        st.session_state['cpf'] = None
+        st.session_state['rg'] = None
 
 # Função para cadastro de rota
 def cadastro_rota():
@@ -344,11 +344,11 @@ def cadastro_rota():
         valores = (rota, cidade, regiao, cep_unico)
         salvar_dados('cad_rota', campos, valores, id_registro)
         # Limpa os campos após o salvamento
-        st.session_state['id_rota'] = ''
-        st.session_state['rota'] = ''
-        st.session_state['cidade'] = ''
-        st.session_state['regiao'] = ''
-        st.session_state['cep_unico'] = ''
+        st.session_state['id_rota'] = None
+        st.session_state['rota'] = None
+        st.session_state['cidade'] = None
+        st.session_state['regiao'] = None
+        st.session_state['cep_unico'] = None
 
 # Função para cadastro de veículo
 def cadastro_veiculo():
@@ -365,11 +365,11 @@ def cadastro_veiculo():
         valores = (placa, perfil, proprietario, cubagem)
         salvar_dados('cad_vei', campos, valores, id_registro)
         # Limpa os campos após o salvamento
-        st.session_state['id_veiculo'] = ''
-        st.session_state['placa'] = ''
-        st.session_state['perfil'] = ''
-        st.session_state['proprietario'] = ''
-        st.session_state['cubagem'] = ''
+        st.session_state['id_veiculo'] = None
+        st.session_state['placa'] = None
+        st.session_state['perfil'] = None
+        st.session_state['proprietario'] = None
+        st.session_state['cubagem'] = None
 
 # Função para cadastro de frete extra
 def cadastro_frete_extra():
@@ -388,13 +388,13 @@ def cadastro_frete_extra():
         valores = (cliente, data, id_carga, rota, entrega_final, valor)
         salvar_dados('cad_frete_extra', campos, valores, id_registro)
         # Limpa os campos após o salvamento
-        st.session_state['id_frete_extra'] = ''
-        st.session_state['cliente_frete'] = ''
-        st.session_state['data_frete'] = ''
-        st.session_state['id_carga_frete'] = ''
-        st.session_state['rota_frete'] = ''
-        st.session_state['entrega_final'] = ''
-        st.session_state['valor_frete'] = ''
+        st.session_state['id_frete_extra'] = None
+        st.session_state['cliente_frete'] = None
+        st.session_state['data_frete'] = None
+        st.session_state['id_carga_frete'] = None
+        st.session_state['rota_frete'] = None
+        st.session_state['entrega_final'] = None
+        st.session_state['valor_frete'] = None
 
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
