@@ -120,7 +120,7 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
             cursor = conn.cursor()
             query = """
                 SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot,
-                       id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+                       id_carga_cvia, cubagem, rot_1, cid_1, mod_1, valor_carga, descarga, adiantamento, valor_frete
                 FROM tela_inicial
             """
             if filtro_id:
