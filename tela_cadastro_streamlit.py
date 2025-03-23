@@ -256,7 +256,7 @@ def submit_data():
             # Caso contrário, insere um novo registro
             query = """
                 INSERT INTO tela_inicial 
-                (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
+                (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1, valor_carga, descarga, adiantamento, valor_frete) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(query, values)
