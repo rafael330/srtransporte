@@ -132,7 +132,7 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
             resultados = cursor.fetchall()
             colunas = [
                 'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
-                'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'rot_2', 'cid_1', 'cid_2', 'mod_1', 'mod_2', 'Valor da Carga', 
+                'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'cid_1', 'mod_1', 'Valor da Carga', 
                 'Descarga', 'Adiantamento', 'Valor do Frete'
             ]
             df = pd.DataFrame(resultados, columns=colunas)
@@ -153,7 +153,7 @@ def buscar_lancamento_por_id(id_registro):
                 cursor = conn.cursor()
                 query = """
                     SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-                           minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete
+                           minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1, valor_carga, descarga, adiantamento, valor_frete
                     FROM tela_inicial 
                     WHERE id = %s
                 """
@@ -171,16 +171,13 @@ def buscar_lancamento_por_id(id_registro):
                         'minuta_ot': resultado[7],
                         'id_carga_cvia': resultado[8],
                         'cubagem': resultado[9],
-                        'rot_1': resultado[10],
-                        'rot_2': resultado[11],
-                        'cid_1': resultado[12],
-                        'cid_2': resultado[13],
-                        'mod_1': resultado[14],
-                        'mod_2': resultado[15],
-                        'valor_carga': resultado[16],
-                        'descarga': resultado[17],
-                        'adiantamento': resultado[18],
-                        'valor_frete': resultado[19]
+                        'rot_1': resultado[10],                        
+                        'cid_1': resultado[11],                        
+                        'mod_1': resultado[12],                        
+                        'valor_carga': resultado[13],
+                        'descarga': resultado[14],
+                        'adiantamento': resultado[15],
+                        'valor_frete': resultado[16]
                     })
                 else:
                     st.warning("Nenhum registro encontrado com esse ID.")
@@ -241,9 +238,8 @@ def submit_data():
             data_mysql, st.session_state['cliente'], st.session_state['cod_cliente'],
             st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
             st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
-            st.session_state['cubagem'], st.session_state['rot_1'], st.session_state.get('rot_2', ''),
-            st.session_state['cid_1'], st.session_state.get('cid_2', ''), st.session_state['mod_1'],
-            st.session_state.get('mod_2', ''), st.session_state['valor_carga'], st.session_state.get('descarga', ''),
+            st.session_state['cubagem'], st.session_state['rot_1'], 
+            st.session_state['cid_1'], st.session_state['mod_1'], st.session_state['valor_carga'], st.session_state.get('descarga', ''),
             st.session_state.get('adiantamento', ''), st.session_state['valor_frete']
         )
 
@@ -252,7 +248,7 @@ def submit_data():
             query = """
                 UPDATE tela_inicial 
                 SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
-                    minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, rot_2 = %s, cid_1 = %s, cid_2 = %s, mod_1 = %s, mod_2 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                    minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, cid_1 = %s, mod_1 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
                 WHERE id = %s
             """
             cursor.execute(query, values + (id_registro,))
@@ -261,7 +257,7 @@ def submit_data():
             query = """
                 INSERT INTO tela_inicial 
                 (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, rot_2, cid_1, cid_2, mod_1, mod_2, valor_carga, descarga, adiantamento, valor_frete) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(query, values)
 
@@ -425,16 +421,10 @@ if 'cubagem' not in st.session_state:
     st.session_state['cubagem'] = ''
 if 'rot_1' not in st.session_state:
     st.session_state['rot_1'] = ''
-if 'rot_2' not in st.session_state:
-    st.session_state['rot_2'] = ''
 if 'cid_1' not in st.session_state:
     st.session_state['cid_1'] = ''
-if 'cid_2' not in st.session_state:
-    st.session_state['cid_2'] = ''
 if 'mod_1' not in st.session_state:
     st.session_state['mod_1'] = ''
-if 'mod_2' not in st.session_state:
-    st.session_state['mod_2'] = ''
 if 'valor_carga' not in st.session_state:
     st.session_state['valor_carga'] = ''
 if 'descarga' not in st.session_state:
@@ -562,30 +552,7 @@ if opcao == "Novo Cadastro":
             index=0,
             key='mod_1'
         )
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        rot_2 = st.selectbox(
-            "Rota 2",
-            options=[""] + rotas,
-            index=0,
-            key='rot_2'
-        )
-    with col2:
-        cid_2 = st.selectbox(
-            "Cidade 2",
-            options=[""] + cidades,
-            index=0,
-            key='cid_2'
-        )
-    with col3:
-        mod_2 = st.selectbox(
-            "Modalidade 2",
-            options=["", "ABA", "VENDA"],
-            index=0,
-            key='mod_2'
-        )
-    
+        
     cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
     
     if st.button("Enviar"):
