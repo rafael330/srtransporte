@@ -7,11 +7,11 @@ from datetime import datetime
 def conectar_banco():
     try:
         conn = mysql.connector.connect(
-            user='rafael_logitech',  # Usuário do MySQL
-            password='admin',  # Senha do MySQL
-            host='0.tcp.sa.ngrok.io',  # Endereço público gerado pelo Ngrok
-            port=18324,  # Porta gerada pelo Ngrok
-            database='bd_srtransporte'  # Nome do banco de dados
+            user='logitech_rafael',  # Usuário do MySQL
+            password='admin000',  # Senha do MySQL
+            host='db4free.net',  # Endereço público gerado pelo Ngrok
+            port=3306,  # Porta gerada pelo Ngrok
+            database= 'srtransporte'  # Nome do banco de dados
         )
         return conn
     except mysql.connector.Error as err:
