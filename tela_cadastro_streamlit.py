@@ -533,21 +533,21 @@ if opcao == "Novo Cadastro":
     col1, col2, col3 = st.columns(3)
     with col1:
         rot_1 = st.selectbox(
-            "Rota 1",
+            "Rota",
             options=[""] + rotas,
             index=0,
             key='rot_1'
         )
     with col2:
         cid_1 = st.selectbox(
-            "Cidade 1",
+            "Cidade",
             options=[""] + cidades,
             index=0,
             key='cid_1'
         )
     with col3:
         mod_1 = st.selectbox(
-            "Modalidade 1",
+            "Modalidade",
             options=["", "ABA", "VENDA"],
             index=0,
             key='mod_1'
