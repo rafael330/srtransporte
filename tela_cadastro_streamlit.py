@@ -393,7 +393,23 @@ def cadastro_frete_extra():
 def cadastro_fiscal():
     st.title("Cadastro Fiscal")
     
-    # Função auxiliar para buscar clientes e códigos
+    # Função para buscar minuta_ot pelo ID
+    def buscar_minuta_por_id(id_registro):
+        conn = conectar_banco()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                query = "SELECT minuta_ot FROM tela_inicial WHERE id = %s"
+                cursor.execute(query, (id_registro,))
+                resultado = cursor.fetchone()
+                cursor.close()
+                conn.close()
+                return resultado[0] if resultado else None
+            except mysql.connector.Error as err:
+                st.error(f"Erro ao buscar minuta: {err}")
+        return None
+
+    # Função para buscar clientes e códigos
     def buscar_clientes_e_codigos():
         conn = conectar_banco()
         if conn:
@@ -409,44 +425,37 @@ def cadastro_fiscal():
                 st.error(f"Erro ao buscar clientes: {err}")
         return []
 
-    # Função auxiliar para buscar minuta_ot pelo ID
-    def buscar_minuta_por_id(id_registro):
-        if id_registro:
-            conn = conectar_banco()
-            if conn:
-                try:
-                    cursor = conn.cursor()
-                    query = "SELECT minuta_ot FROM tela_inicial WHERE id = %s"
-                    cursor.execute(query, (id_registro,))
-                    resultado = cursor.fetchone()
-                    cursor.close()
-                    conn.close()
-                    return resultado[0] if resultado else None
-                except mysql.connector.Error as err:
-                    st.error(f"Erro ao buscar minuta: {err}")
-        return None
-
     # Busca clientes e códigos
     clientes_e_codigos = buscar_clientes_e_codigos()
     clientes = [cliente[0] for cliente in clientes_e_codigos]
     cliente_para_codigo = {cliente[0]: cliente[1] for cliente in clientes_e_codigos}
 
-    # Campos do formulário
-    id_registro = st.text_input("ID* (obrigatório)", key='id_fiscal')
+    # Layout do formulário
+    col1, col2 = st.columns(2)
     
-    # Preenche automaticamente a Minuta/OT quando o ID é inserido
-    if id_registro and 'minuta_ot_fiscal' not in st.session_state:
-        minuta_ot = buscar_minuta_por_id(id_registro)
-        if minuta_ot:
-            st.session_state['minuta_ot_fiscal'] = minuta_ot
-    
-    minuta_ot = st.text_input(
-        "Minuta/OT", 
-        value=st.session_state.get('minuta_ot_fiscal', ''), 
-        key='minuta_ot_fiscal',
-        disabled=True  # Campo desabilitado pois será preenchido automaticamente
-    )
-    
+    with col1:
+        # Campo ID com busca automática da Minuta/OT
+        id_registro = st.text_input("ID* (obrigatório)", key='id_fiscal')
+        
+        # Quando o ID é alterado, busca automaticamente a Minuta/OT
+        if id_registro:
+            minuta_ot = buscar_minuta_por_id(id_registro)
+            if minuta_ot:
+                st.session_state['minuta_ot_fiscal'] = minuta_ot
+            else:
+                st.session_state['minuta_ot_fiscal'] = ""
+                if len(id_registro) > 0:  # Só mostra aviso se o campo não estiver vazio
+                    st.warning("Nenhuma minuta encontrada para este ID")
+
+    with col2:
+        # Campo Minuta/OT (preenchido automaticamente)
+        minuta_ot = st.text_input(
+            "Minuta/OT", 
+            value=st.session_state.get('minuta_ot_fiscal', ''), 
+            key='minuta_ot_fiscal',
+            disabled=True
+        )
+
     # Selectbox para cliente com atualização automática do código
     cliente_selecionado = st.selectbox(
         "Cliente",
@@ -455,71 +464,93 @@ def cadastro_fiscal():
         key='cliente_fiscal'
     )
     
-    # Preenche automaticamente o código do cliente
+    # Código do cliente (preenchido automaticamente)
     cod_cliente = st.text_input(
         "Código do Cliente",
         value=cliente_para_codigo.get(cliente_selecionado, ''),
         key='cod_cliente_fiscal',
         disabled=True
     )
-    
-    valor_carga = st.text_input("Valor da Carga", key='valor_carga_fiscal')
-    valor_frete = st.text_input("Valor do Frete", key='valor_frete_fiscal')
 
+    # Campos de valores
+    col1, col2 = st.columns(2)
+    with col1:
+        valor_carga = st.text_input("Valor da Carga", key='valor_carga_fiscal')
+    with col2:
+        valor_frete = st.text_input("Valor do Frete", key='valor_frete_fiscal')
+
+    # Botão de salvar
     if st.button("Salvar"):
         # Validação dos campos obrigatórios
         if not id_registro:
             st.error("O campo ID é obrigatório")
             return
         
-        campos = ['id', 'minuta_ot', 'cliente', 'cod_cliente', 'valor_carga', 'valor_frete']
-        valores = (
-            id_registro,
-            minuta_ot,
-            cliente_selecionado,
-            cod_cliente,
-            valor_carga,
-            valor_frete
-        )
-        
-        # Verifica se é uma atualização ou inserção
+        # Prepara dados para salvar
+        dados = {
+            'id': id_registro,
+            'minuta_ot': minuta_ot,
+            'cliente': cliente_selecionado,
+            'cod_cliente': cliente_para_codigo.get(cliente_selecionado, ''),
+            'valor_carga': valor_carga,
+            'valor_frete': valor_frete
+        }
+
+        # Conecta ao banco e salva
         conn = conectar_banco()
         if conn:
             try:
                 cursor = conn.cursor()
                 
-                # Verifica se o ID já existe
+                # Verifica se é atualização ou inserção
                 cursor.execute("SELECT id FROM tela_fis WHERE id = %s", (id_registro,))
                 existe = cursor.fetchone()
                 
                 if existe:
-                    # Atualiza o registro existente
+                    # Atualiza registro existente
                     query = """
-                        UPDATE tela_fis 
-                        SET minuta_ot = %s, cliente = %s, cod_cliente = %s, 
-                            valor_carga = %s, valor_frete = %s
+                        UPDATE tela_fis SET
+                            minuta_ot = %s,
+                            cliente = %s,
+                            cod_cliente = %s,
+                            valor_carga = %s,
+                            valor_frete = %s
                         WHERE id = %s
                     """
-                    cursor.execute(query, valores[1:] + (valores[0],))
+                    cursor.execute(query, (
+                        dados['minuta_ot'],
+                        dados['cliente'],
+                        dados['cod_cliente'],
+                        dados['valor_carga'],
+                        dados['valor_frete'],
+                        dados['id']
+                    ))
                 else:
-                    # Insere um novo registro
+                    # Insere novo registro
                     query = """
-                        INSERT INTO tela_fis 
-                        (id, minuta_ot, cliente, cod_cliente, valor_carga, valor_frete) 
-                        VALUES (%s, %s, %s, %s, %s, %s)
+                        INSERT INTO tela_fis (
+                            id, minuta_ot, cliente, cod_cliente, valor_carga, valor_frete
+                        ) VALUES (%s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, valores)
+                    cursor.execute(query, (
+                        dados['id'],
+                        dados['minuta_ot'],
+                        dados['cliente'],
+                        dados['cod_cliente'],
+                        dados['valor_carga'],
+                        dados['valor_frete']
+                    ))
                 
                 conn.commit()
                 st.success("Dados salvos com sucesso!")
                 
-                # Limpa os campos após o salvamento
-                st.session_state['id_fiscal'] = None
-                st.session_state['minuta_ot_fiscal'] = None
+                # Limpa o formulário após salvar
+                st.session_state['id_fiscal'] = ""
+                st.session_state['minuta_ot_fiscal'] = ""
                 st.session_state['cliente_fiscal'] = ""
                 st.session_state['cod_cliente_fiscal'] = ""
-                st.session_state['valor_carga_fiscal'] = None
-                st.session_state['valor_frete_fiscal'] = None
+                st.session_state['valor_carga_fiscal'] = ""
+                st.session_state['valor_frete_fiscal'] = ""
                 
             except mysql.connector.Error as err:
                 conn.rollback()
