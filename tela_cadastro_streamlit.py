@@ -80,18 +80,18 @@ def buscar_motoristas():
             st.error(f"Erro ao buscar motoristas: {err}")
     return {}
 
-# Função para buscar placas e perfis de veículos
+# Função para buscar placas, perfis e proprietários de veículos
 def buscar_placas():
     conn = conectar_banco()
     if conn:
         try:
             cursor = conn.cursor()
-            query = "SELECT placa, perfil FROM cad_vei"
+            query = "SELECT placa, perfil, proprietario FROM cad_vei"
             cursor.execute(query)
             resultados = cursor.fetchall()
             cursor.close()
             conn.close()
-            return {placa: perfil for placa, perfil in resultados}
+            return {placa: {'perfil': perfil, 'proprietario': proprietario} for placa, perfil, proprietario in resultados}
         except mysql.connector.Error as err:
             st.error(f"Erro ao buscar placas: {err}")
     return {}
@@ -119,8 +119,8 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
         try:
             cursor = conn.cursor()
             query = """
-                SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot,
-                       id_carga_cvia, cubagem, rot_1, cid_1, mod_1, valor_carga, descarga, adiantamento, valor_frete
+                SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, proprietario_vei, minuta_ot,
+                       id_carga_cvia, cubagem, rot_1, cid_1, mod_1
                 FROM tela_inicial
             """
             if filtro_id:
@@ -131,9 +131,9 @@ def buscar_todos_lancamentos(filtro_id=None, filtro_data=None):
             
             resultados = cursor.fetchall()
             colunas = [
-                'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 'Perfil do Veículo', 
-                'Minuta/OT', 'ID carga / CVia', 'Cubagem', 'rot_1', 'cid_1', 'mod_1', 'Valor da Carga', 
-                'Descarga', 'Adiantamento', 'Valor do Frete'
+                'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 
+                'Perfil do Veículo', 'Proprietário', 'Minuta/OT', 'ID carga / CVia', 'Cubagem', 
+                'rot_1', 'cid_1', 'mod_1'
             ]
             df = pd.DataFrame(resultados, columns=colunas)
             df['ID'] = df['ID'].replace(',','')
@@ -152,8 +152,8 @@ def buscar_lancamento_por_id(id_registro):
             try:
                 cursor = conn.cursor()
                 query = """
-                    SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, 
-                           minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1, valor_carga, descarga, adiantamento, valor_frete
+                    SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, proprietario_vei,
+                           minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1
                     FROM tela_inicial 
                     WHERE id = %s
                 """
@@ -168,16 +168,13 @@ def buscar_lancamento_por_id(id_registro):
                         'cpf_motorista': resultado[4],
                         'placa': resultado[5],
                         'perfil_vei': resultado[6],
-                        'minuta_ot': resultado[7],
-                        'id_carga_cvia': resultado[8],
-                        'cubagem': resultado[9],
-                        'rot_1': resultado[10],                        
-                        'cid_1': resultado[11],                        
-                        'mod_1': resultado[12],                        
-                        'valor_carga': resultado[13],
-                        'descarga': resultado[14],
-                        'adiantamento': resultado[15],
-                        'valor_frete': resultado[16]
+                        'proprietario_vei': resultado[7],
+                        'minuta_ot': resultado[8],
+                        'id_carga_cvia': resultado[9],
+                        'cubagem': resultado[10],
+                        'rot_1': resultado[11],                        
+                        'cid_1': resultado[12],                        
+                        'mod_1': resultado[13]                        
                     })
                 else:
                     st.warning("Nenhum registro encontrado com esse ID.")
@@ -189,8 +186,6 @@ def buscar_lancamento_por_id(id_registro):
         st.warning("Por favor, informe o ID.")
 
 # Função para enviar dados (inserir ou atualizar)
-from datetime import datetime
-
 def submit_data():
     # Lista de campos obrigatórios
     campos_obrigatorios = {
@@ -201,11 +196,10 @@ def submit_data():
         'cpf_motorista': st.session_state.get('cpf_motorista', ''),
         'placa': st.session_state.get('placa', ''),
         'perfil_vei': st.session_state.get('perfil_vei', ''),
+        'proprietario_vei': st.session_state.get('proprietario_vei', ''),
         'minuta_ot': st.session_state.get('minuta_ot', ''),
         'id_carga_cvia': st.session_state.get('id_carga_cvia', ''),
-        'cubagem': st.session_state.get('cubagem', ''),
-        'valor_carga': st.session_state.get('valor_carga', ''),
-        'valor_frete': st.session_state.get('valor_frete', '')
+        'cubagem': st.session_state.get('cubagem', '')
     }
 
     # Verifica se todos os campos obrigatórios foram preenchidos
@@ -237,18 +231,18 @@ def submit_data():
         values = (
             data_mysql, st.session_state['cliente'], st.session_state['cod_cliente'],
             st.session_state['motorista'], st.session_state['cpf_motorista'], st.session_state['placa'],
-            st.session_state['perfil_vei'], st.session_state['minuta_ot'], st.session_state['id_carga_cvia'],
-            st.session_state['cubagem'], st.session_state['rot_1'], 
-            st.session_state['cid_1'], st.session_state['mod_1'], st.session_state['valor_carga'], st.session_state.get('descarga', ''),
-            st.session_state.get('adiantamento', ''), st.session_state['valor_frete']
+            st.session_state['perfil_vei'], st.session_state['proprietario_vei'], st.session_state['minuta_ot'], 
+            st.session_state['id_carga_cvia'], st.session_state['cubagem'], st.session_state['rot_1'], 
+            st.session_state['cid_1'], st.session_state['mod_1']
         )
 
         # Se houver um ID, atualiza o registro existente
         if id_registro:
             query = """
                 UPDATE tela_inicial 
-                SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, perfil_vei = %s,
-                    minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, rot_1 = %s, cid_1 = %s, mod_1 = %s, valor_carga = %s, descarga = %s, adiantamento = %s, valor_frete = %s
+                SET data = %s, cliente = %s, cod_cliente = %s, motorista = %s, cpf_motorista = %s, placa = %s, 
+                    perfil_vei = %s, proprietario_vei = %s, minuta_ot = %s, id_carga_cvia = %s, cubagem = %s, 
+                    rot_1 = %s, cid_1 = %s, mod_1 = %s
                 WHERE id = %s
             """
             cursor.execute(query, values + (id_registro,))
@@ -256,8 +250,9 @@ def submit_data():
             # Caso contrário, insere um novo registro
             query = """
                 INSERT INTO tela_inicial 
-                (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1, valor_carga, descarga, adiantamento, valor_frete) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, proprietario_vei, 
+                 minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(query, values)
 
@@ -394,6 +389,83 @@ def cadastro_frete_extra():
         st.session_state['entrega_final'] = None
         st.session_state['valor_frete'] = None
 
+# Função para cadastro fiscal
+def cadastro_fiscal():
+    st.title("Cadastro Fiscal")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_fiscal')
+    minuta_ot = st.text_input("Minuta/OT", key='minuta_ot_fiscal')
+    valor_carga = st.text_input("Valor da Carga", key='valor_carga_fiscal')
+    valor_frete = st.text_input("Valor do Frete", key='valor_frete_fiscal')
+
+    if st.button("Salvar"):
+        campos = ['minuta_ot', 'valor_carga', 'valor_frete']
+        valores = (minuta_ot, valor_carga, valor_frete)
+        salvar_dados('tela_fis', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_fiscal'] = None
+        st.session_state['minuta_ot_fiscal'] = None
+        st.session_state['valor_carga_fiscal'] = None
+        st.session_state['valor_frete_fiscal'] = None
+
+# Função para cadastro financeiro
+def cadastro_financeiro():
+    st.title("Cadastro Financeiro")
+    
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_financeiro')
+    minuta_ot = st.text_input("Minuta/OT", key='minuta_ot_financeiro')
+    valor_frete_pago = st.text_input("Valor do Frete (pago)", key='valor_frete_pago')
+    descontos = st.text_input("Descontos", key='descontos')
+    acerto = st.text_input("Acerto (Despesa extra)", key='acerto')
+    observacoes = st.text_area("Observações gerais", key='observacoes')
+
+    if st.button("Salvar"):
+        campos = ['minuta_ot', 'valor_frete_pago', 'descontos', 'acerto', 'observacoes']
+        valores = (minuta_ot, valor_frete_pago, descontos, acerto, observacoes)
+        salvar_dados('tela_fin', campos, valores, id_registro)
+        # Limpa os campos após o salvamento
+        st.session_state['id_financeiro'] = None
+        st.session_state['minuta_ot_financeiro'] = None
+        st.session_state['valor_frete_pago'] = None
+        st.session_state['descontos'] = None
+        st.session_state['acerto'] = None
+        st.session_state['observacoes'] = None
+
+# Função para baixa financeira
+def baixa_financeira():
+    st.title("Baixa Financeira")
+    
+    uploaded_file = st.file_uploader("Carregar arquivo XLSX", type=["xlsx"])
+    
+    if uploaded_file is not None:
+        try:
+            df = pd.read_excel(uploaded_file)
+            st.write("Pré-visualização dos dados:")
+            st.dataframe(df)
+            
+            if st.button("Importar dados"):
+                conn = conectar_banco()
+                if conn:
+                    try:
+                        cursor = conn.cursor()
+                        for _, row in df.iterrows():
+                            query = """
+                                INSERT INTO baixa_financeira 
+                                (campo1, campo2, campo3) 
+                                VALUES (%s, %s, %s)
+                            """
+                            # Ajuste os campos e valores conforme a estrutura do seu arquivo
+                            cursor.execute(query, (row[0], row[1], row[2]))
+                        
+                        conn.commit()
+                        cursor.close()
+                        conn.close()
+                        st.success("Dados importados com sucesso!")
+                    except mysql.connector.Error as err:
+                        st.error(f"Erro ao importar dados: {err}")
+        except Exception as e:
+            st.error(f"Erro ao ler o arquivo: {str(e)}")
+
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
     st.session_state['opcao'] = "Novo Cadastro"
@@ -413,6 +485,8 @@ if 'placa' not in st.session_state:
     st.session_state['placa'] = ''
 if 'perfil_vei' not in st.session_state:
     st.session_state['perfil_vei'] = ''
+if 'proprietario_vei' not in st.session_state:
+    st.session_state['proprietario_vei'] = ''
 if 'minuta_ot' not in st.session_state:
     st.session_state['minuta_ot'] = ''
 if 'id_carga_cvia' not in st.session_state:
@@ -425,21 +499,14 @@ if 'cid_1' not in st.session_state:
     st.session_state['cid_1'] = ''
 if 'mod_1' not in st.session_state:
     st.session_state['mod_1'] = ''
-if 'valor_carga' not in st.session_state:
-    st.session_state['valor_carga'] = ''
-if 'descarga' not in st.session_state:
-    st.session_state['descarga'] = ''
-if 'adiantamento' not in st.session_state:
-    st.session_state['adiantamento'] = ''
-if 'valor_frete' not in st.session_state:
-    st.session_state['valor_frete'] = ''
 
 # Configurando a barra lateral com botões
 st.sidebar.title("Menu")
 opcao = st.sidebar.radio("Selecione uma opção", [
     "Novo Cadastro", "Consulta de Cadastro", "Cadastro de Cliente", 
     "Cadastro de Motorista", "Cadastro de Rota", "Cadastro de Veículo", 
-    "Cadastro de Frete Extra"
+    "Cadastro de Frete Extra", "Cadastro Fiscal", "Cadastro Financeiro",
+    "Baixa Financeira"
 ])
 
 # Redirecionamento para a tela selecionada
@@ -452,7 +519,8 @@ if opcao == "Novo Cadastro":
     # Buscar clientes, motoristas, placas e rotas
     clientes = buscar_clientes()
     motoristas = buscar_motoristas()
-    placas = buscar_placas()
+    placas_info = buscar_placas()
+    placas = list(placas_info.keys())
     rotas_cidades = buscar_rotas_cidades()
     rotas = list(set([rc[0] for rc in rotas_cidades]))
     cidades = list(set([rc[1] for rc in rotas_cidades]))
@@ -493,21 +561,29 @@ if opcao == "Novo Cadastro":
             disabled=True
         )
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         placa = st.selectbox(
             "Placa",
-            options=[""] + list(placas.keys()),
+            options=[""] + placas,
             index=0,
             key='placa'
         )
         if placa:
-            st.session_state['perfil_vei'] = placas.get(placa, '')
+            st.session_state['perfil_vei'] = placas_info.get(placa, {}).get('perfil', '')
+            st.session_state['proprietario_vei'] = placas_info.get(placa, {}).get('proprietario', '')
     with col2:
         perfil_vei = st.text_input(
             "Perfil do Veículo",
             value=st.session_state.get('perfil_vei', ''),
             key='perfil_vei',
+            disabled=True
+        )
+    with col3:
+        proprietario_vei = st.text_input(
+            "Proprietário do Veículo",
+            value=st.session_state.get('proprietario_vei', ''),
+            key='proprietario_vei',
             disabled=True
         )
     
@@ -517,16 +593,6 @@ if opcao == "Novo Cadastro":
     with col2:
         id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')
     
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
-    with col2:
-        valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
-    with col3:
-        descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
-    with col4:
-        adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
-
     # Campo de data no formato brasileiro (dd/mm/aaaa)
     data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data')
     
@@ -593,3 +659,12 @@ elif opcao == "Cadastro de Veículo":
 
 elif opcao == "Cadastro de Frete Extra":
     cadastro_frete_extra()
+
+elif opcao == "Cadastro Fiscal":
+    cadastro_fiscal()
+
+elif opcao == "Cadastro Financeiro":
+    cadastro_financeiro()
+
+elif opcao == "Baixa Financeira":
+    baixa_financeira()
