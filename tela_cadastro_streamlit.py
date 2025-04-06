@@ -547,6 +547,12 @@ def cadastro_fiscal():
                 st.session_state.clear()  # Limpa todos os campos
                 st.experimental_rerun()  # Recarrega a página para garantir que os campos fiquem vazios
                 
+                # Limpa o formulário após salvar (exceto o cliente selecionado)
+                st.session_state.valor_carga_fiscal = ""
+                st.session_state.valor_frete_fiscal = ""
+                st.session_state.last_id_fiscal = ""
+                st.session_state.cliente_fiscal = ""
+                
             except mysql.connector.Error as err:
                 conn.rollback()
                 st.error(f"Erro ao salvar dados: {err}")
