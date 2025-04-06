@@ -806,7 +806,8 @@ if opcao == "Novo Cadastro":
     # Buscar clientes, motoristas, placas e rotas
     clientes = buscar_clientes()
     motoristas = buscar_motoristas()
-    placas = buscar_placas()
+    placas_info = buscar_placas()
+    placas = list(placas_info.keys())
     rotas_cidades = buscar_rotas_cidades()
     rotas = list(set([rc[0] for rc in rotas_cidades]))
     cidades = list(set([rc[1] for rc in rotas_cidades]))
@@ -847,21 +848,29 @@ if opcao == "Novo Cadastro":
             disabled=True
         )
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         placa = st.selectbox(
             "Placa",
-            options=[""] + list(placas.keys()),
+            options=[""] + placas,
             index=0,
             key='placa'
         )
         if placa:
-            st.session_state['perfil_vei'] = placas.get(placa, '')
+            st.session_state['perfil_vei'] = placas_info.get(placa, {}).get('perfil', '')
+            st.session_state['proprietario_vei'] = placas_info.get(placa, {}).get('proprietario', '')
     with col2:
         perfil_vei = st.text_input(
             "Perfil do Veículo",
             value=st.session_state.get('perfil_vei', ''),
             key='perfil_vei',
+            disabled=True
+        )
+    with col3:
+        proprietario_vei = st.text_input(
+            "Proprietário do Veículo",
+            value=st.session_state.get('proprietario_vei', ''),
+            key='proprietario_vei',
             disabled=True
         )
     
@@ -871,16 +880,6 @@ if opcao == "Novo Cadastro":
     with col2:
         id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')
     
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
-    with col2:
-        valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
-    with col3:
-        descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
-    with col4:
-        adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
-
     # Campo de data no formato brasileiro (dd/mm/aaaa)
     data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data')
     
