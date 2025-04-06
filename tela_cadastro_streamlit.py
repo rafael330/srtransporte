@@ -583,10 +583,12 @@ def cadastro_financeiro():
         st.session_state.descontos = ""
     if 'acerto' not in st.session_state:
         st.session_state.acerto = ""
+    if 'adiantamento' not in st.session_state:
+        st.session_state.adiantamento = ""
     if 'observacoes' not in st.session_state:
         st.session_state.observacoes = ""
 
-    # Função para buscar minuta_ot pelo ID (mesma do Cadastro Fiscal)
+    # Função para buscar minuta_ot pelo ID
     def buscar_minuta_por_id(id_registro):
         conn = conectar_banco()
         if conn:
@@ -632,7 +634,13 @@ def cadastro_financeiro():
     with col2:
         descontos = st.text_input("Descontos", key='descontos', value=st.session_state.descontos)
 
-    acerto = st.text_input("Acerto (Despesa extra)", key='acerto', value=st.session_state.acerto)
+    # Campos Acerto e Adiantamento lado a lado
+    col1, col2 = st.columns(2)
+    with col1:
+        acerto = st.text_input("Acerto (Despesa extra)", key='acerto', value=st.session_state.acerto)
+    with col2:
+        adiantamento = st.text_input("Adiantamento", key='adiantamento', value=st.session_state.adiantamento)
+
     observacoes = st.text_area("Observações gerais", key='observacoes', value=st.session_state.observacoes)
 
     # Botão de salvar
@@ -649,6 +657,7 @@ def cadastro_financeiro():
             'valor_frete_pago': valor_frete_pago,
             'descontos': descontos,
             'acerto': acerto,
+            'adiantamento': adiantamento,
             'observacoes': observacoes
         }
 
@@ -670,6 +679,7 @@ def cadastro_financeiro():
                             valor_frete_pago = %s,
                             descontos = %s,
                             acerto = %s,
+                            adiantamento = %s,
                             observacoes = %s
                         WHERE id = %s
                     """
@@ -678,6 +688,7 @@ def cadastro_financeiro():
                         dados['valor_frete_pago'],
                         dados['descontos'],
                         dados['acerto'],
+                        dados['adiantamento'],
                         dados['observacoes'],
                         dados['id']
                     ))
@@ -685,8 +696,8 @@ def cadastro_financeiro():
                     # Insere novo registro
                     query = """
                         INSERT INTO tela_fin (
-                            id, minuta_ot, valor_frete_pago, descontos, acerto, observacoes
-                        ) VALUES (%s, %s, %s, %s, %s, %s)
+                            id, minuta_ot, valor_frete_pago, descontos, acerto, adiantamento, observacoes
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(query, (
                         dados['id'],
@@ -694,6 +705,7 @@ def cadastro_financeiro():
                         dados['valor_frete_pago'],
                         dados['descontos'],
                         dados['acerto'],
+                        dados['adiantamento'],
                         dados['observacoes']
                     ))
                 
