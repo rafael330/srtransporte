@@ -847,7 +847,7 @@ opcao = st.sidebar.radio("Selecione uma opção", [
     "Novo Cadastro", "Consulta de Cadastro", "Cadastro de Cliente", 
     "Cadastro de Motorista", "Cadastro de Rota", "Cadastro de Veículo", 
     "Cadastro de Frete Extra", "Cadastro Fiscal", "Cadastro Financeiro",
-    "Baixa Financeira"
+    "Baixa Financeira", "Preventivo de entrega"
 ])
 
 # Redirecionamento para a tela selecionada
@@ -967,6 +967,8 @@ if opcao == "Novo Cadastro":
 
 elif opcao == "Consulta de Cadastro":
     st.title("Consulta de Cadastro")
+elif opcao == "Preventivo de Entrega":
+    preventivo_entrega()
     
     # Campo para inserir o ID do lançamento
     id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
@@ -1009,3 +1011,86 @@ elif opcao == "Cadastro Financeiro":
 
 elif opcao == "Baixa Financeira":
     baixa_financeira()
+
+#Função para o preventivo
+def preventivo_entrega():
+    st.title("Preventivo de Entrega")
+    
+    uploaded_file = st.file_uploader("Carregar arquivo XLSX", type=["xlsx"], key='preventivo_upload')
+    
+    if uploaded_file is not None:
+        try:
+            # Lê o arquivo mantendo os formatos originais
+            df = pd.read_excel(uploaded_file)
+            
+            # Mostra pré-visualização
+            st.write("Pré-visualização dos dados:")
+            st.dataframe(df)
+            
+            # Analisa a estrutura do arquivo
+            colunas_arquivo = df.columns.tolist()
+            tipos_dados = df.dtypes
+            
+            if st.button("Importar para Preventivo"):
+                conn = conectar_banco()
+                if conn:
+                    try:
+                        cursor = conn.cursor()
+                        
+                        # Primeiro verifica a estrutura da tabela preventivo
+                        cursor.execute("SHOW COLUMNS FROM preventivo")
+                        colunas_tabela = [column[0] for column in cursor.fetchall()]
+                        
+                        # Remove 'id' se for auto-incremento
+                        if 'id' in colunas_tabela:
+                            colunas_tabela.remove('id')
+                        
+                        # Verifica compatibilidade das colunas
+                        if not all(col in colunas_arquivo for col in colunas_tabela):
+                            st.error(f"Colunas no arquivo não correspondem às da tabela. Esperado: {', '.join(colunas_tabela)}")
+                            return
+                        
+                        # Prepara a query
+                        placeholders = ', '.join(['%s'] * len(colunas_tabela))
+                        query = f"INSERT INTO preventivo ({', '.join(colunas_tabela)}) VALUES ({placeholders})"
+                        
+                        # Converte os dados conforme os tipos
+                        for _, row in df.iterrows():
+                            valores = []
+                            for col in colunas_tabela:
+                                valor = row[col]
+                                
+                                # Trata valores nulos/vazios
+                                if pd.isna(valor):
+                                    valores.append(None)
+                                    continue
+                                
+                                # Conversão especial para timestamps
+                                if isinstance(valor, pd.Timestamp):
+                                    valores.append(valor.to_pydatetime())
+                                elif 'date' in str(valor).lower():
+                                    try:
+                                        dt = pd.to_datetime(valor)
+                                        valores.append(dt.to_pydatetime())
+                                    except:
+                                        valores.append(str(valor))
+                                elif isinstance(valor, (int, float)):
+                                    valores.append(float(valor))
+                                else:
+                                    valores.append(str(valor))
+                            
+                            cursor.execute(query, valores)
+                        
+                        conn.commit()
+                        st.success(f"Dados importados com sucesso! {len(df)} registros adicionados à tabela preventivo.")
+                        
+                    except mysql.connector.Error as err:
+                        conn.rollback()
+                        st.error(f"Erro ao importar dados: {err}")
+                        st.error("Verifique se os tipos de dados correspondem aos da tabela preventivo")
+                    finally:
+                        if conn.is_connected():
+                            cursor.close()
+                            conn.close()
+        except Exception as e:
+            st.error(f"Erro ao processar o arquivo: {str(e)}")
