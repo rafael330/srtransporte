@@ -393,6 +393,18 @@ def cadastro_frete_extra():
 def cadastro_fiscal():
     st.title("Cadastro Fiscal")
     
+    # Inicializa session_state se necessário
+    if 'minuta_ot_fiscal' not in st.session_state:
+        st.session_state.minuta_ot_fiscal = ""
+    if 'cliente_fiscal' not in st.session_state:
+        st.session_state.cliente_fiscal = ""
+    if 'cod_cliente_fiscal' not in st.session_state:
+        st.session_state.cod_cliente_fiscal = ""
+    if 'valor_carga_fiscal' not in st.session_state:
+        st.session_state.valor_carga_fiscal = ""
+    if 'valor_frete_fiscal' not in st.session_state:
+        st.session_state.valor_frete_fiscal = ""
+
     # Função para buscar minuta_ot pelo ID
     def buscar_minuta_por_id(id_registro):
         conn = conectar_banco()
@@ -404,10 +416,10 @@ def cadastro_fiscal():
                 resultado = cursor.fetchone()
                 cursor.close()
                 conn.close()
-                return resultado[0] if resultado else None
+                return resultado[0] if resultado else ""
             except mysql.connector.Error as err:
                 st.error(f"Erro ao buscar minuta: {err}")
-        return None
+        return ""
 
     # Função para buscar clientes e códigos
     def buscar_clientes_e_codigos():
@@ -427,57 +439,59 @@ def cadastro_fiscal():
 
     # Busca clientes e códigos
     clientes_e_codigos = buscar_clientes_e_codigos()
-    clientes = [cliente[0] for cliente in clientes_e_codigos]
+    clientes = [""] + [cliente[0] for cliente in clientes_e_codigos]
     cliente_para_codigo = {cliente[0]: cliente[1] for cliente in clientes_e_codigos}
 
-    # Layout do formulário
+    # Campo ID
+    id_registro = st.text_input("ID* (obrigatório)", key='id_fiscal', value=st.session_state.get('id_fiscal', ''))
+    
+    # Busca automática da Minuta/OT quando o ID é alterado
+    if id_registro and id_registro != st.session_state.get('last_id_fiscal', ''):
+        st.session_state.minuta_ot_fiscal = buscar_minuta_por_id(id_registro)
+        st.session_state.last_id_fiscal = id_registro
+        if id_registro and not st.session_state.minuta_ot_fiscal:
+            st.warning("Nenhuma minuta encontrada para este ID")
+
+    # Layout dos campos
     col1, col2 = st.columns(2)
     
     with col1:
-        # Campo ID com busca automática da Minuta/OT
-        id_registro = st.text_input("ID* (obrigatório)", key='id_fiscal')
-        
-        # Quando o ID é alterado, busca automaticamente a Minuta/OT
-        if id_registro:
-            minuta_ot = buscar_minuta_por_id(id_registro)
-            if minuta_ot:
-                st.session_state['minuta_ot_fiscal'] = minuta_ot
-            else:
-                st.session_state['minuta_ot_fiscal'] = ""
-                if len(id_registro) > 0:  # Só mostra aviso se o campo não estiver vazio
-                    st.warning("Nenhuma minuta encontrada para este ID")
-
-    with col2:
         # Campo Minuta/OT (preenchido automaticamente)
-        minuta_ot = st.text_input(
+        st.text_input(
             "Minuta/OT", 
-            value=st.session_state.get('minuta_ot_fiscal', ''), 
-            key='minuta_ot_fiscal',
+            value=st.session_state.minuta_ot_fiscal,
+            key='display_minuta_ot',
             disabled=True
         )
 
-    # Selectbox para cliente com atualização automática do código
-    cliente_selecionado = st.selectbox(
-        "Cliente",
-        options=[""] + clientes,
-        index=0,
-        key='cliente_fiscal'
-    )
-    
+    with col2:
+        # Selectbox para cliente
+        cliente_selecionado = st.selectbox(
+            "Cliente",
+            options=clientes,
+            index=clientes.index(st.session_state.cliente_fiscal) if st.session_state.cliente_fiscal in clientes else 0,
+            key='select_cliente'
+        )
+        
+        # Atualiza código do cliente quando o cliente muda
+        if cliente_selecionado != st.session_state.get('last_cliente', ''):
+            st.session_state.cod_cliente_fiscal = cliente_para_codigo.get(cliente_selecionado, "")
+            st.session_state.last_cliente = cliente_selecionado
+
     # Código do cliente (preenchido automaticamente)
-    cod_cliente = st.text_input(
+    st.text_input(
         "Código do Cliente",
-        value=cliente_para_codigo.get(cliente_selecionado, ''),
-        key='cod_cliente_fiscal',
+        value=st.session_state.cod_cliente_fiscal,
+        key='display_cod_cliente',
         disabled=True
     )
 
     # Campos de valores
     col1, col2 = st.columns(2)
     with col1:
-        valor_carga = st.text_input("Valor da Carga", key='valor_carga_fiscal')
+        valor_carga = st.text_input("Valor da Carga", key='valor_carga_fiscal', value=st.session_state.valor_carga_fiscal)
     with col2:
-        valor_frete = st.text_input("Valor do Frete", key='valor_frete_fiscal')
+        valor_frete = st.text_input("Valor do Frete", key='valor_frete_fiscal', value=st.session_state.valor_frete_fiscal)
 
     # Botão de salvar
     if st.button("Salvar"):
@@ -489,9 +503,9 @@ def cadastro_fiscal():
         # Prepara dados para salvar
         dados = {
             'id': id_registro,
-            'minuta_ot': minuta_ot,
+            'minuta_ot': st.session_state.minuta_ot_fiscal,
             'cliente': cliente_selecionado,
-            'cod_cliente': cliente_para_codigo.get(cliente_selecionado, ''),
+            'cod_cliente': st.session_state.cod_cliente_fiscal,
             'valor_carga': valor_carga,
             'valor_frete': valor_frete
         }
@@ -542,17 +556,12 @@ def cadastro_fiscal():
                     ))
                 
                 conn.commit()
-                st.success("Dados salvos com sucesso!")                
-
-                # Limpa o formulário após salvar (exceto o cliente selecionado)
-                st.session_state.valor_carga_fiscal = ""
-                st.session_state.valor_frete_fiscal = ""
-                st.session_state.last_id_fiscal = ""
-                st.session_state.cliente_fiscal = ""
+                st.success("Dados salvos com sucesso!")
                 
-                st.session_state.clear()  # Limpa todos os campos
-                st.experimental_rerun()  # Recarrega a página para garantir que os campos fiquem vazios
-                                
+                # Limpa todos os campos após salvar
+                st.session_state.clear()
+                st.experimental_rerun()
+                
             except mysql.connector.Error as err:
                 conn.rollback()
                 st.error(f"Erro ao salvar dados: {err}")
