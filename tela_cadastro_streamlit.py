@@ -699,102 +699,89 @@ def preventivo_entrega():
             st.write("Pré-visualização dos dados:")
             st.dataframe(df)
             
+            # Colunas obrigatórias (ajuste conforme necessário)
+            colunas_obrigatorias = ['PEDIDO CLIENTE', 'PEDIDO GEMGO', 'NUMERO NOTA FISCAL']
+            
+            # Verifica colunas faltantes
+            colunas_faltantes = [col for col in colunas_obrigatorias if col not in df.columns]
+            if colunas_faltantes:
+                st.error(f"Colunas obrigatórias faltantes: {', '.join(colunas_faltantes)}")
+                return
+            
             if st.button("Importar para Preventivo"):
                 conn = conectar_banco()
                 if conn:
                     try:
                         cursor = conn.cursor()
                         
-                        # Primeiro verifica a estrutura da tabela preventivo
+                        # Remove colunas que não existem na tabela
                         cursor.execute("SHOW COLUMNS FROM preventivo")
-                        colunas_tabela = [column[0] for column in cursor.fetchall()]
+                        colunas_tabela = [column[0] for column in cursor.fetchall() if column[0] != 'id']
                         
-                        # Remove 'id' se for auto-incremento
-                        if 'id' in colunas_tabela:
-                            colunas_tabela.remove('id')
+                        # Filtra apenas colunas que existem tanto no arquivo quanto na tabela
+                        colunas_validas = [col for col in df.columns if col in colunas_tabela]
                         
-                        # Verifica se o arquivo tem colunas correspondentes
-                        colunas_arquivo = df.columns.tolist()
-                        
-                        # Mapeia colunas do arquivo para colunas da tabela (caso os nomes sejam diferentes)
-                        mapeamento_colunas = {
-                            # Exemplo: 'NOME NO ARQUIVO': 'nome_na_tabela',
-                            # Adicione aqui os mapeamentos necessários
-                            'PEDIDO GEMCO': 'pedido_gemco',
-                            'NUMERO NOTA FISCAL': 'numero_nota_fiscal'
-                            # Inclua todos os mapeamentos necessários
-                        }
-                        
-                        # Verifica colunas obrigatórias
-                        colunas_obrigatorias = ['PEDIDO CLIENTE', 'PEDIDO GEMCO', 'NUMERO NOTA FISCAL']  # Ajuste conforme necessário
-                        if not all(col in colunas_arquivo for col in colunas_obrigatorias):
-                            st.error(f"O arquivo deve conter as colunas: {', '.join(colunas_obrigatorias)}")
+                        if not colunas_validas:
+                            st.error("Nenhuma coluna correspondente encontrada entre o arquivo e a tabela")
                             return
                         
-                        # Prepara os dados para inserção
-                        placeholders = ', '.join(['%s'] * len(colunas_tabela))
-                        
-                        # Cria a query SQL com nomes de colunas entre backticks
-                        colunas_sql = ', '.join([f"`{col}`" for col in colunas_tabela])
+                        # Prepara a query SQL com nomes entre backticks
+                        colunas_sql = ', '.join([f"`{col}`" for col in colunas_validas])
+                        placeholders = ', '.join(['%s'] * len(colunas_validas))
                         query = f"INSERT INTO preventivo ({colunas_sql}) VALUES ({placeholders})"
                         
-                        # Converte os dados
+                        # Processa cada linha
+                        total_inseridos = 0
                         for _, row in df.iterrows():
                             valores = []
-                            for col in colunas_tabela:
-                                # Verifica se há mapeamento para esta coluna
-                                col_arquivo = next((k for k, v in mapeamento_colunas.items() if v == col), col)
+                            for col in colunas_validas:
+                                valor = row[col]
                                 
-                                # Se a coluna não existir no arquivo, usa None
-                                if col_arquivo not in df.columns:
-                                    valores.append(None)
-                                    continue
-                                
-                                valor = row[col_arquivo]
-                                
-                                # Trata valores nulos/vazios
+                                # Trata valores nulos
                                 if pd.isna(valor):
                                     valores.append(None)
                                     continue
                                 
-                                # Conversão para timestamp/datetime
+                                # Conversão de datas/timestamps
                                 if isinstance(valor, pd.Timestamp):
                                     valores.append(valor.to_pydatetime())
-                                elif 'date' in str(valor).lower():
+                                elif 'DT.' in col or 'DATA' in col.upper():
                                     try:
                                         dt = pd.to_datetime(valor)
                                         valores.append(dt.to_pydatetime())
                                     except:
                                         valores.append(str(valor))
-                                # Conversão para números
+                                # Conversão de números
                                 elif isinstance(valor, (int, float)):
                                     valores.append(float(valor))
-                                # Strings e outros
+                                # Strings
                                 else:
                                     valores.append(str(valor))
                             
                             try:
                                 cursor.execute(query, valores)
+                                total_inseridos += 1
                             except mysql.connector.Error as err:
-                                st.error(f"Erro ao inserir registro: {err}")
-                                st.error(f"Query: {query}")
-                                st.error(f"Valores: {valores}")
+                                st.error(f"Erro na linha {total_inseridos+1}: {err}")
+                                st.error(f"Valores problemáticos: {valores}")
                                 conn.rollback()
                                 return
                         
                         conn.commit()
-                        st.success(f"Dados importados com sucesso! {len(df)} registros adicionados à tabela preventivo.")
+                        st.success(f"Dados importados com sucesso! {total_inseridos}/{len(df)} registros inseridos.")
                         
                     except mysql.connector.Error as err:
                         conn.rollback()
-                        st.error(f"Erro ao importar dados: {err}")
-                        st.error("Verifique se os nomes das colunas correspondem aos da tabela preventivo")
+                        st.error(f"Erro no banco de dados: {err}")
+                    except Exception as e:
+                        conn.rollback()
+                        st.error(f"Erro inesperado: {str(e)}")
                     finally:
                         if conn.is_connected():
                             cursor.close()
                             conn.close()
         except Exception as e:
-            st.error(f"Erro ao processar o arquivo: {str(e)}")
+            st.error(f"Erro ao ler o arquivo: {str(e)}")
 
 # Configuração inicial do session_state
 if 'opcao' not in st.session_state:
