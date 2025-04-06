@@ -726,7 +726,7 @@ def preventivo_entrega():
                         }
                         
                         # Verifica colunas obrigatórias
-                        colunas_obrigatorias = ['CLIENTE', 'PEDIDO GEMCO', 'NUMERO NOTA FISCAL']  # Ajuste conforme necessário
+                        colunas_obrigatorias = ['PEDIDO CLIENTE', 'PEDIDO GEMCO', 'NUMERO NOTA FISCAL']  # Ajuste conforme necessário
                         if not all(col in colunas_arquivo for col in colunas_obrigatorias):
                             st.error(f"O arquivo deve conter as colunas: {', '.join(colunas_obrigatorias)}")
                             return
