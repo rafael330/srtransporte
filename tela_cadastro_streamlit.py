@@ -542,15 +542,10 @@ def cadastro_fiscal():
                     ))
                 
                 conn.commit()
-                st.success("Dados salvos com sucesso!")
+                st.success("Dados salvos com sucesso!")                
                 
-                # Limpa o formulário após salvar
-                st.session_state['id_fiscal'] = ""
-                st.session_state['minuta_ot_fiscal'] = ""
-                st.session_state['cliente_fiscal'] = ""
-                st.session_state['cod_cliente_fiscal'] = ""
-                st.session_state['valor_carga_fiscal'] = ""
-                st.session_state['valor_frete_fiscal'] = ""
+                st.session_state.clear()  # Limpa todos os campos
+                st.experimental_rerun()  # Recarrega a página para garantir que os campos fiquem vazios
                 
             except mysql.connector.Error as err:
                 conn.rollback()
