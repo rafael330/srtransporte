@@ -798,11 +798,140 @@ opcao = st.sidebar.radio("Selecione uma opção", [
 
 # Redirecionamento para a tela selecionada
 if opcao == "Novo Cadastro":
-    # (Manter implementação existente)
-    pass
+    st.title("Novo Cadastro de Carregamento")
+    
+    # Campo ID (para correções)
+    id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id')
+    
+    # Buscar clientes, motoristas, placas e rotas
+    clientes = buscar_clientes()
+    motoristas = buscar_motoristas()
+    placas = buscar_placas()
+    rotas_cidades = buscar_rotas_cidades()
+    rotas = list(set([rc[0] for rc in rotas_cidades]))
+    cidades = list(set([rc[1] for rc in rotas_cidades]))
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        cliente = st.selectbox(
+            "Cliente",
+            options=[""] + list(clientes.keys()),
+            index=0,
+            key='cliente'
+        )
+        if cliente:
+            st.session_state['cod_cliente'] = clientes.get(cliente, '')
+    with col2:
+        cod_cliente = st.text_input(
+            "Código do Cliente",
+            value=st.session_state.get('cod_cliente', ''),
+            key='cod_cliente',
+            disabled=True
+        )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        motorista = st.selectbox(
+            "Motorista",
+            options=[""] + list(motoristas.keys()),
+            index=0,
+            key='motorista'
+        )
+        if motorista:
+            st.session_state['cpf_motorista'] = motoristas.get(motorista, '')
+    with col2:
+        cpf_motorista = st.text_input(
+            "CPF do Motorista",
+            value=st.session_state.get('cpf_motorista', ''),
+            key='cpf_motorista',
+            disabled=True
+        )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        placa = st.selectbox(
+            "Placa",
+            options=[""] + list(placas.keys()),
+            index=0,
+            key='placa'
+        )
+        if placa:
+            st.session_state['perfil_vei'] = placas.get(placa, '')
+    with col2:
+        perfil_vei = st.text_input(
+            "Perfil do Veículo",
+            value=st.session_state.get('perfil_vei', ''),
+            key='perfil_vei',
+            disabled=True
+        )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        minuta_ot = st.text_input("Minuta/OT", value=st.session_state.get('minuta_ot', ''), key='minuta_ot')
+    with col2:
+        id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        valor_carga = st.text_input("Valor da Carga", value=st.session_state.get('valor_carga', ''), key='valor_carga')
+    with col2:
+        valor_frete = st.text_input("Valor do Frete", value=st.session_state.get('valor_frete', ''), key='valor_frete')
+    with col3:
+        descarga = st.text_input("Descarga", value=st.session_state.get('descarga', ''), key='descarga')
+    with col4:
+        adiantamento = st.text_input("Adiantamento", value=st.session_state.get('adiantamento', ''), key='adiantamento')
+
+    # Campo de data no formato brasileiro (dd/mm/aaaa)
+    data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data')
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        rot_1 = st.selectbox(
+            "Rota",
+            options=[""] + rotas,
+            index=0,
+            key='rot_1'
+        )
+    with col2:
+        cid_1 = st.selectbox(
+            "Cidade",
+            options=[""] + cidades,
+            index=0,
+            key='cid_1'
+        )
+    with col3:
+        mod_1 = st.selectbox(
+            "Modalidade",
+            options=["", "ABA", "VENDA"],
+            index=0,
+            key='mod_1'
+        )
+        
+    cubagem = st.text_input("Cubagem", value=st.session_state.get('cubagem', ''), key='cubagem')
+    
+    if st.button("Enviar"):
+        submit_data()
+
 elif opcao == "Consulta de Cadastro":
-    # (Manter implementação existente)
-    pass
+    st.title("Consulta de Cadastro")
+    
+    # Campo para inserir o ID do lançamento
+    id_registro = st.text_input("Informe o ID do lançamento", key='id_edicao')
+    
+    # Botão para buscar os lançamentos
+    if st.button("Buscar"):
+        if id_registro:
+            # Busca pelo ID do lançamento
+            df = buscar_todos_lancamentos(filtro_id=id_registro)
+        else:
+            # Busca todos os lançamentos
+            df = buscar_todos_lancamentos()
+        
+        # Exibe os resultados
+        if not df.empty:
+            st.dataframe(df, height=500, use_container_width=True)
+        else:
+            st.warning("Nenhum lançamento encontrado.")
 elif opcao == "Cadastro de Cliente":
     cadastro_cliente()
 elif opcao == "Cadastro de Motorista":
