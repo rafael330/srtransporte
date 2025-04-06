@@ -451,11 +451,11 @@ def baixa_financeira():
                         for _, row in df.iterrows():
                             query = """
                                 INSERT INTO baixa_financeira 
-                                (campo1, campo2, campo3) 
-                                VALUES (%s, %s, %s)
+                                (id_carga_cvia, valor_recebido, cod_cliente, cliente, data_pagamento) 
+                                VALUES (%s, %s, %s, %s, %s)
                             """
                             # Ajuste os campos e valores conforme a estrutura do seu arquivo
-                            cursor.execute(query, (row[0], row[1], row[2]))
+                            cursor.execute(query, (row[0], row[1], row[2], row[3], row[4]))
                         
                         conn.commit()
                         cursor.close()
