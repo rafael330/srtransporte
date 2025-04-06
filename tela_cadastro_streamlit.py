@@ -705,32 +705,59 @@ def preventivo_entrega():
                     try:
                         cursor = conn.cursor()
                         
-                        # Primeiro verifica a estrutura da tabela
+                        # Primeiro verifica a estrutura da tabela preventivo
                         cursor.execute("SHOW COLUMNS FROM preventivo")
-                        colunas_info = cursor.fetchall()
-                        colunas = [col[0] for col in colunas_info if col[0].lower() != 'id']
+                        colunas_tabela = [column[0] for column in cursor.fetchall()]
                         
-                        # Verifica se as colunas do arquivo correspondem às da tabela
-                        if not all(col in df.columns for col in colunas):
-                            st.error(f"Colunas no arquivo não correspondem às da tabela. Esperado: {', '.join(colunas)}")
+                        # Remove 'id' se for auto-incremento
+                        if 'id' in colunas_tabela:
+                            colunas_tabela.remove('id')
+                        
+                        # Verifica se o arquivo tem colunas correspondentes
+                        colunas_arquivo = df.columns.tolist()
+                        
+                        # Mapeia colunas do arquivo para colunas da tabela (caso os nomes sejam diferentes)
+                        mapeamento_colunas = {
+                            # Exemplo: 'NOME NO ARQUIVO': 'nome_na_tabela',
+                            # Adicione aqui os mapeamentos necessários
+                            'PEDIDO GEMCO': 'pedido_gemco',
+                            'NUMERO NOTA FISCAL': 'numero_nota_fiscal'
+                            # Inclua todos os mapeamentos necessários
+                        }
+                        
+                        # Verifica colunas obrigatórias
+                        colunas_obrigatorias = ['CLIENTE', 'PEDIDO GEMCO', 'NUMERO NOTA FISCAL']  # Ajuste conforme necessário
+                        if not all(col in colunas_arquivo for col in colunas_obrigatorias):
+                            st.error(f"O arquivo deve conter as colunas: {', '.join(colunas_obrigatorias)}")
                             return
                         
-                        # Prepara a query
-                        placeholders = ', '.join(['%s'] * len(colunas))
-                        query = f"INSERT INTO preventivo ({', '.join(colunas)}) VALUES ({placeholders})"
+                        # Prepara os dados para inserção
+                        placeholders = ', '.join(['%s'] * len(colunas_tabela))
                         
-                        # Converte os dados conforme os tipos
+                        # Cria a query SQL com nomes de colunas entre backticks
+                        colunas_sql = ', '.join([f"`{col}`" for col in colunas_tabela])
+                        query = f"INSERT INTO preventivo ({colunas_sql}) VALUES ({placeholders})"
+                        
+                        # Converte os dados
                         for _, row in df.iterrows():
                             valores = []
-                            for col in colunas:
-                                valor = row[col]
+                            for col in colunas_tabela:
+                                # Verifica se há mapeamento para esta coluna
+                                col_arquivo = next((k for k, v in mapeamento_colunas.items() if v == col), col)
                                 
-                                # Se for NULL ou vazio
-                                if pd.isna(valor) or valor == '':
+                                # Se a coluna não existir no arquivo, usa None
+                                if col_arquivo not in df.columns:
                                     valores.append(None)
                                     continue
                                 
-                                # Conversão para tipos específicos
+                                valor = row[col_arquivo]
+                                
+                                # Trata valores nulos/vazios
+                                if pd.isna(valor):
+                                    valores.append(None)
+                                    continue
+                                
+                                # Conversão para timestamp/datetime
                                 if isinstance(valor, pd.Timestamp):
                                     valores.append(valor.to_pydatetime())
                                 elif 'date' in str(valor).lower():
@@ -739,12 +766,21 @@ def preventivo_entrega():
                                         valores.append(dt.to_pydatetime())
                                     except:
                                         valores.append(str(valor))
+                                # Conversão para números
                                 elif isinstance(valor, (int, float)):
                                     valores.append(float(valor))
+                                # Strings e outros
                                 else:
                                     valores.append(str(valor))
                             
-                            cursor.execute(query, valores)
+                            try:
+                                cursor.execute(query, valores)
+                            except mysql.connector.Error as err:
+                                st.error(f"Erro ao inserir registro: {err}")
+                                st.error(f"Query: {query}")
+                                st.error(f"Valores: {valores}")
+                                conn.rollback()
+                                return
                         
                         conn.commit()
                         st.success(f"Dados importados com sucesso! {len(df)} registros adicionados à tabela preventivo.")
@@ -752,7 +788,7 @@ def preventivo_entrega():
                     except mysql.connector.Error as err:
                         conn.rollback()
                         st.error(f"Erro ao importar dados: {err}")
-                        st.error("Verifique se os tipos de dados correspondem aos da tabela preventivo")
+                        st.error("Verifique se os nomes das colunas correspondem aos da tabela preventivo")
                     finally:
                         if conn.is_connected():
                             cursor.close()
