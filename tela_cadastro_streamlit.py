@@ -439,7 +439,10 @@ def baixa_financeira():
     
     if uploaded_file is not None:
         try:
-            df = pd.read_excel(uploaded_file)
+            # Lê o arquivo mantendo os formatos originais
+            df = pd.read_excel(uploaded_file, dtype=str)  # Lê tudo como string inicialmente
+            
+            # Mostra pré-visualização
             st.write("Pré-visualização dos dados:")
             st.dataframe(df)
             
@@ -448,23 +451,68 @@ def baixa_financeira():
                 if conn:
                     try:
                         cursor = conn.cursor()
+                        
+                        # Primeiro verifica a estrutura da tabela
+                        cursor.execute("SHOW COLUMNS FROM baixa_financeira")
+                        colunas_info = cursor.fetchall()
+                        colunas = [col[0] for col in colunas_info if col[0].lower() != 'id']
+                        tipos = {col[0]: col[1] for col in colunas_info}
+                        
+                        # Verifica se as colunas do arquivo correspondem às da tabela
+                        if not all(col in df.columns for col in colunas):
+                            st.error(f"Colunas no arquivo não correspondem às da tabela. Esperado: {', '.join(colunas)}")
+                            return
+                        
+                        # Prepara a query
+                        placeholders = ', '.join(['%s'] * len(colunas))
+                        query = f"INSERT INTO baixa_financeira ({', '.join(colunas)}) VALUES ({placeholders})"
+                        
+                        # Converte os dados conforme os tipos da tabela
                         for _, row in df.iterrows():
-                            query = """
-                                INSERT INTO baixa_financeira 
-                                (id_carga_cvia, valor_recebido, cod_cliente, cliente, data_pagamento) 
-                                VALUES (%s, %s, %s, %s, %s)
-                            """
-                            # Ajuste os campos e valores conforme a estrutura do seu arquivo
-                            cursor.execute(query, (row[0], row[1], row[2], row[3], row[4]))
+                            valores = []
+                            for col in colunas:
+                                valor = row[col]
+                                
+                                # Se for NULL ou vazio
+                                if pd.isna(valor) or valor == '':
+                                    valores.append(None)
+                                    continue
+                                
+                                # Conversão para tipos específicos
+                                if 'date' in tipos[col].lower() or 'datetime' in tipos[col].lower():
+                                    try:
+                                        # Tenta converter de string para datetime
+                                        dt = pd.to_datetime(valor)
+                                        valores.append(dt.strftime('%Y-%m-%d %H:%M:%S'))
+                                    except:
+                                        valores.append(str(valor))
+                                elif 'int' in tipos[col].lower():
+                                    try:
+                                        valores.append(int(float(valor)))
+                                    except:
+                                        valores.append(None)
+                                elif 'decimal' in tipos[col].lower() or 'float' in tipos[col].lower() or 'double' in tipos[col].lower():
+                                    try:
+                                        valores.append(float(valor))
+                                    except:
+                                        valores.append(None)
+                                else:  # Strings e outros
+                                    valores.append(str(valor))
+                            
+                            cursor.execute(query, valores)
                         
                         conn.commit()
-                        cursor.close()
-                        conn.close()
-                        st.success("Dados importados com sucesso!")
+                        st.success(f"Dados importados com sucesso! {len(df)} registros adicionados.")
+                        
                     except mysql.connector.Error as err:
+                        conn.rollback()
                         st.error(f"Erro ao importar dados: {err}")
+                    finally:
+                        if conn.is_connected():
+                            cursor.close()
+                            conn.close()
         except Exception as e:
-            st.error(f"Erro ao ler o arquivo: {str(e)}")
+            st.error(f"Erro ao processar o arquivo: {str(e)}")
 
 # Inicializando o session_state
 if 'opcao' not in st.session_state:
