@@ -39,12 +39,45 @@ def salvar_dados(tabela, campos, valores, id_registro):
         conn.close()
         st.success("Dados salvos com sucesso!")
         
-        st.session_state.clear()
-        st.rerun()
+        # Limpa os campos específicos da tela atual
+        limpar_campos(tabela)
+        
+        st.experimental_rerun()
     except mysql.connector.Error as err:
         st.error(f"Erro ao salvar dados no banco de dados: {err}")
     except Exception as e:
         st.error(f"Erro inesperado: {str(e)}")
+
+# Função para limpar campos específicos de cada tela
+def limpar_campos(tabela):
+    if tabela == 'tela_inicial':
+        campos_limpar = [
+            'id', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
+            'placa', 'perfil_vei', 'proprietario_vei', 'minuta_ot',
+            'id_carga_cvia', 'data', 'cid_1', 'mod_1', 'cubagem'
+        ]
+    elif tabela == 'cad_cliente':
+        campos_limpar = ['id_cliente', 'cod_cliente', 'cliente', 'cnpj']
+    elif tabela == 'cad_mot':
+        campos_limpar = ['id_motorista', 'motorista', 'cpf', 'rg']
+    elif tabela == 'cad_rota':
+        campos_limpar = ['id_rota', 'cidade', 'regiao', 'cep_unico']
+    elif tabela == 'cad_vei':
+        campos_limpar = ['id_veiculo', 'placa', 'perfil', 'proprietario', 'cubagem']
+    elif tabela == 'cad_frete_extra':
+        campos_limpar = ['id_frete_extra', 'cliente_frete', 'data_frete', 'id_carga_frete', 
+                        'cidade_frete', 'entrega_final', 'valor_frete']
+    elif tabela == 'tela_fis':
+        campos_limpar = ['id_fiscal', 'select_cliente', 'valor_carga_fiscal', 'valor_frete_fiscal']
+    elif tabela == 'tela_fin':
+        campos_limpar = ['id_financeiro', 'valor_frete_pago', 'descontos', 'acerto', 
+                        'adiantamento', 'observacoes']
+    else:
+        campos_limpar = []
+    
+    for campo in campos_limpar:
+        if campo in st.session_state:
+            del st.session_state[campo]
 
 # Função para buscar clientes
 def buscar_clientes():
@@ -441,9 +474,10 @@ def cadastro_fiscal():
                 conn.commit()
                 st.success("Dados salvos com sucesso!")
                 
-                # Limpa todos os campos após salvar
-                st.session_state.clear()
-                st.rerun()
+                # Limpa os campos específicos
+                limpar_campos('tela_fis')
+                
+                st.experimental_rerun()
                 
             except mysql.connector.Error as err:
                 conn.rollback()
@@ -595,9 +629,10 @@ def cadastro_financeiro():
                 conn.commit()
                 st.success("Dados salvos com sucesso!")
                 
-                # Limpa todos os campos após salvar
-                st.session_state.clear()
-                st.rerun()
+                # Limpa os campos específicos
+                limpar_campos('tela_fin')
+                
+                st.experimental_rerun()
                 
             except mysql.connector.Error as err:
                 conn.rollback()
