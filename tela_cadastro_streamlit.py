@@ -94,20 +94,20 @@ def buscar_placas():
             st.error(f"Erro ao buscar placas: {err}")
     return {}
 
-# Função para buscar rotas
-def buscar_rotas_cidades():
+# Função para buscar cidades
+def buscar_cidades():
     conn = conectar_banco()
     if conn:
         try:
             cursor = conn.cursor()
-            query = "SELECT rota, cidade FROM cad_rota"
+            query = "SELECT DISTINCT cidade FROM cad_rota"
             cursor.execute(query)
             resultados = cursor.fetchall()
             cursor.close()
             conn.close()
-            return resultados
+            return [cidade[0] for cidade in resultados]
         except mysql.connector.Error as err:
-            st.error(f"Erro ao buscar rotas e cidades: {err}")
+            st.error(f"Erro ao buscar cidades: {err}")
     return []
 
 # Função para buscar lançamentos
@@ -118,7 +118,7 @@ def buscar_todos_lancamentos(filtro_id=None):
             cursor = conn.cursor()
             query = """
                 SELECT id, data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, proprietario_vei, minuta_ot,
-                       id_carga_cvia, cubagem, rot_1, cid_1, mod_1
+                       id_carga_cvia, cubagem, cid_1, mod_1
                 FROM tela_inicial
             """
             if filtro_id:
@@ -131,7 +131,7 @@ def buscar_todos_lancamentos(filtro_id=None):
             colunas = [
                 'ID', 'Data', 'Cliente', 'Código do Cliente', 'Motorista', 'CPF do Motorista', 'Placa', 
                 'Perfil do Veículo', 'Proprietário', 'Minuta/OT', 'ID carga / CVia', 'Cubagem', 
-                'rot_1', 'cid_1', 'mod_1'
+                'Cidade', 'Modalidade'
             ]
             df = pd.DataFrame(resultados, columns=colunas)
             df['ID'] = df['ID'].replace(',','')
@@ -151,7 +151,7 @@ def buscar_lancamento_por_id(id_registro):
                 cursor = conn.cursor()
                 query = """
                     SELECT data, cliente, cod_cliente, motorista, cpf_motorista, placa, perfil_vei, proprietario_vei,
-                           minuta_ot, id_carga_cvia, cubagem, rot_1, cid_1, mod_1
+                           minuta_ot, id_carga_cvia, cubagem, cid_1, mod_1
                     FROM tela_inicial 
                     WHERE id = %s
                 """
@@ -170,9 +170,8 @@ def buscar_lancamento_por_id(id_registro):
                         'minuta_ot': resultado[8],
                         'id_carga_cvia': resultado[9],
                         'cubagem': resultado[10],
-                        'rot_1': resultado[11],                        
-                        'cid_1': resultado[12],                        
-                        'mod_1': resultado[13]                        
+                        'cid_1': resultado[11],                        
+                        'mod_1': resultado[12]                        
                     })
                 else:
                     st.warning("Nenhum registro encontrado com esse ID.")
@@ -232,14 +231,13 @@ def cadastro_rota():
     st.title("Cadastro de Rota")
     
     id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_rota')
-    rota = st.text_input("Rota", key='rota')
     cidade = st.text_input("Cidade", key='cidade')
     regiao = st.text_input("Região", key='regiao')
     cep_unico = st.text_input("CEP Único", key='cep_unico')
 
     if st.button("Salvar"):
-        campos = ['rota', 'cidade', 'regiao', 'cep_unico']
-        valores = (rota, cidade, regiao, cep_unico)
+        campos = ['cidade', 'regiao', 'cep_unico']
+        valores = (cidade, regiao, cep_unico)
         salvar_dados('cad_rota', campos, valores, id_registro)
 
 # Função para cadastro de veículo
@@ -265,13 +263,13 @@ def cadastro_frete_extra():
     cliente = st.selectbox("Cliente", options=[""] + list(buscar_clientes().keys()), key='cliente_frete')
     data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data_frete')
     id_carga = st.selectbox("ID Carga", options=[""] + buscar_cargas(), key='id_carga_frete')
-    rota = st.selectbox("Rota", options=[""] + [rota[1] for rota in buscar_rotas_cidades()], key='rota_frete')
+    cidade = st.selectbox("Cidade", options=[""] + buscar_cidades(), key='cidade_frete')
     entrega_final = st.text_input("Entrega Final", key='entrega_final')
     valor = st.text_input("Valor", key='valor_frete')
 
     if st.button("Salvar"):
-        campos = ['cliente', 'data', 'id_carga', 'rota', 'entrega_final', 'valor']
-        valores = (cliente, data, id_carga, rota, entrega_final, valor)
+        campos = ['cliente', 'data', 'id_carga', 'cidade', 'entrega_final', 'valor']
+        valores = (cliente, data, id_carga, cidade, entrega_final, valor)
         salvar_dados('cad_frete_extra', campos, valores, id_registro)
 
 # Função para cadastro fiscal
@@ -783,6 +781,60 @@ def preventivo_entrega():
         except Exception as e:
             st.error(f"Erro ao ler o arquivo: {str(e)}")
 
+# Função para enviar dados do formulário
+def submit_data():
+    # Validação dos campos obrigatórios
+    required_fields = {
+        'cliente': 'Cliente',
+        'motorista': 'Motorista',
+        'placa': 'Placa',
+        'data': 'Data',
+        'cid_1': 'Cidade'
+    }
+    
+    missing_fields = []
+    for field, name in required_fields.items():
+        if not st.session_state.get(field):
+            missing_fields.append(name)
+    
+    if missing_fields:
+        st.error(f"Por favor, preencha os seguintes campos obrigatórios: {', '.join(missing_fields)}")
+        return
+    
+    # Formata a data para o padrão MySQL (YYYY-MM-DD)
+    try:
+        data_obj = datetime.strptime(st.session_state['data'], '%d/%m/%Y')
+        data_mysql = data_obj.strftime('%Y-%m-%d')
+    except ValueError:
+        st.error("Formato de data inválido. Use dd/mm/aaaa")
+        return
+    
+    # Prepara os dados para inserção
+    campos = [
+        'data', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
+        'placa', 'perfil_vei', 'proprietario_vei', 'minuta_ot',
+        'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1'
+    ]
+    
+    valores = (
+        data_mysql,
+        st.session_state['cliente'],
+        st.session_state.get('cod_cliente', ''),
+        st.session_state['motorista'],
+        st.session_state.get('cpf_motorista', ''),
+        st.session_state['placa'],
+        st.session_state.get('perfil_vei', ''),
+        st.session_state.get('proprietario_vei', ''),
+        st.session_state.get('minuta_ot', ''),
+        st.session_state.get('id_carga_cvia', ''),
+        st.session_state.get('cubagem', ''),
+        st.session_state['cid_1'],
+        st.session_state.get('mod_1', '')
+    )
+    
+    # Chama a função para salvar os dados
+    salvar_dados('tela_inicial', campos, valores, st.session_state.get('id'))
+
 # Configuração inicial do session_state
 if 'opcao' not in st.session_state:
     st.session_state.opcao = "Novo Cadastro"
@@ -803,19 +855,22 @@ if opcao == "Novo Cadastro":
     # Campo ID (para correções)
     id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id')
     
-    # Buscar clientes, motoristas, placas e rotas
+    # Se um ID foi fornecido, busca os dados existentes
+    if id_registro and id_registro != st.session_state.get('last_id', ''):
+        buscar_lancamento_por_id(id_registro)
+        st.session_state.last_id = id_registro
+    
+    # Buscar clientes, motoristas, placas e cidades
     clientes = buscar_clientes()
     motoristas = buscar_motoristas()
     placas_info = buscar_placas()
     placas = list(placas_info.keys())
-    rotas_cidades = buscar_rotas_cidades()
-    rotas = list(set([rc[0] for rc in rotas_cidades]))
-    cidades = list(set([rc[1] for rc in rotas_cidades]))
+    cidades = buscar_cidades()
     
     col1, col2 = st.columns(2)
     with col1:
         cliente = st.selectbox(
-            "Cliente",
+            "Cliente*",
             options=[""] + list(clientes.keys()),
             index=0,
             key='cliente'
@@ -833,7 +888,7 @@ if opcao == "Novo Cadastro":
     col1, col2 = st.columns(2)
     with col1:
         motorista = st.selectbox(
-            "Motorista",
+            "Motorista*",
             options=[""] + list(motoristas.keys()),
             index=0,
             key='motorista'
@@ -851,7 +906,7 @@ if opcao == "Novo Cadastro":
     col1, col2, col3 = st.columns(3)
     with col1:
         placa = st.selectbox(
-            "Placa",
+            "Placa*",
             options=[""] + placas,
             index=0,
             key='placa'
@@ -881,24 +936,17 @@ if opcao == "Novo Cadastro":
         id_carga_cvia = st.text_input("ID carga / CVia", value=st.session_state.get('id_carga_cvia', ''), key='id_carga_cvia')
     
     # Campo de data no formato brasileiro (dd/mm/aaaa)
-    data = st.text_input("Data (Formato: dd/mm/aaaa)", key='data')
+    data = st.text_input("Data* (Formato: dd/mm/aaaa)", key='data')
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
-        rot_1 = st.selectbox(
-            "Rota",
-            options=[""] + rotas,
-            index=0,
-            key='rot_1'
-        )
-    with col2:
         cid_1 = st.selectbox(
-            "Cidade",
+            "Cidade*",
             options=[""] + cidades,
             index=0,
             key='cid_1'
         )
-    with col3:
+    with col2:
         mod_1 = st.selectbox(
             "Modalidade",
             options=["", "ABA", "VENDA"],
