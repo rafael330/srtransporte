@@ -40,7 +40,7 @@ def salvar_dados(tabela, campos, valores, id_registro):
         st.success("Dados salvos com sucesso!")
         
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
     except mysql.connector.Error as err:
         st.error(f"Erro ao salvar dados no banco de dados: {err}")
     except Exception as e:
@@ -443,7 +443,7 @@ def cadastro_fiscal():
                 
                 # Limpa todos os campos após salvar
                 st.session_state.clear()
-                st.experimental_rerun()
+                st.rerun()
                 
             except mysql.connector.Error as err:
                 conn.rollback()
@@ -597,7 +597,7 @@ def cadastro_financeiro():
                 
                 # Limpa todos os campos após salvar
                 st.session_state.clear()
-                st.experimental_rerun()
+                st.rerun()
                 
             except mysql.connector.Error as err:
                 conn.rollback()
