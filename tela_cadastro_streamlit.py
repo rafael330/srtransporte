@@ -2,6 +2,7 @@ import streamlit as st
 import mysql.connector
 import pandas as pd
 from datetime import datetime
+from PIL import image
 
 # Função para conectar ao banco de dados
 def conectar_banco():
@@ -840,6 +841,9 @@ if 'opcao' not in st.session_state:
     st.session_state.opcao = "Novo Cadastro"
 
 # Menu lateral
+path = "https://github.com/rafael330/srtransporte/blob/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.png"
+imagem = Image.open(path)
+st.logo(path, size="small")
 st.sidebar.title("Menu")
 
 opcao = st.sidebar.radio("Selecione uma opção", [
