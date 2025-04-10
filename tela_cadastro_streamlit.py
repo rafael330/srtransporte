@@ -2,7 +2,7 @@ import streamlit as st
 import mysql.connector
 import pandas as pd
 from datetime import datetime
-from PIL import image
+from PIL import Image
 
 # Função para conectar ao banco de dados
 def conectar_banco():
@@ -841,17 +841,25 @@ if 'opcao' not in st.session_state:
     st.session_state.opcao = "Novo Cadastro"
 
 # Menu lateral
-path = "https://github.com/rafael330/srtransporte/blob/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.png"
-imagem = Image.open(path)
-st.logo(path, size="small")
-st.sidebar.title("Menu")
+path = "https://raw.githubusercontent.com/rafael330/srtransporte/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.png"
 
-opcao = st.sidebar.radio("Selecione uma opção", [
-    "Novo Cadastro", "Consulta de Cadastro", "Cadastro de Cliente", 
-    "Cadastro de Motorista", "Cadastro de Rota", "Cadastro de Veículo", 
-    "Cadastro de Frete Extra", "Cadastro Fiscal", "Cadastro Financeiro",
-    "Baixa Financeira", "Preventivo de Entrega"
-])
+with st.sidebar:
+    # Exibe a logo com tamanho personalizado (300px de largura)
+    st.image(
+        path,
+        width=280,  # Ajuste este valor conforme necessário
+        use_container_width='auto'  # Mantém a proporção
+    )
+           
+    st.title("Menu")  # Título do menu
+    
+    # Opções do menu
+    opcao = st.radio("Selecione uma opção", [
+        "Novo Cadastro", "Consulta de Cadastro", "Cadastro de Cliente", 
+        "Cadastro de Motorista", "Cadastro de Rota", "Cadastro de Veículo", 
+        "Cadastro de Frete Extra", "Cadastro Fiscal", "Cadastro Financeiro",
+        "Baixa Financeira", "Preventivo de Entrega"
+    ])
 
 # Redirecionamento para a tela selecionada
 if opcao == "Novo Cadastro":
