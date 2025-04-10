@@ -841,8 +841,8 @@ if 'opcao' not in st.session_state:
 
 # Menu lateral
 st.sidebar.title("Menu")
-image = "https://github.com/rafael330/srtransporte/blob/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.jpeg"
-st.logo(image, size="medium", link=None, icon_image=None)
+image = "https://raw.githubusercontent.com/rafael330/srtransporte/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.jpeg"
+st.sidebar.image(image, width=200)
 
 opcao = st.sidebar.radio("Selecione uma opção", [
     "Novo Cadastro", "Consulta de Cadastro", "Cadastro de Cliente", 
