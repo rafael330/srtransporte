@@ -841,7 +841,7 @@ if 'opcao' not in st.session_state:
 
 # Menu lateral
 image = "https://raw.githubusercontent.com/rafael330/srtransporte/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.jpeg"
-st.logo(image, size="medium", link=None, icon_image=None)
+st.sidebar.image(image, width=200)
 
 st.sidebar.title("Menu")
 
