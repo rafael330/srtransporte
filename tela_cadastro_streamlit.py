@@ -840,8 +840,8 @@ if 'opcao' not in st.session_state:
     st.session_state.opcao = "Novo Cadastro"
 
 # Menu lateral
-image = "https://github.com/rafael330/srtransporte/blob/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.jpeg"
-st.sidebar.image(image, width=200)
+image = "https://github.com/rafael330/srtransporte/blob/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.png"
+st.sidebar.image(image, width=50)
 
 st.sidebar.title("Menu")
 
