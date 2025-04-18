@@ -17,16 +17,7 @@ def main(form_key_suffix=""):
             return None
     
     def cadastro_financeiro(suffix):
-        st.title("Cadastro Financeiro")
-
-        st.markdown("""
-        <style>
-            .stForm {
-                border: none !important;
-                box-shadow: none !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
+        st.title("Cadastro Financeiro")      
         
         # Inicializa session_state com keys únicas
         defaults = {
