@@ -63,7 +63,7 @@ if pagina == 'Cadastros - OPERAÇÃO':
     with tab6:   
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_frete_extra.py"
         executar_arquivo_remoto(url,
-                               form_key_suffix="extra")
+                               form_key_suffix="frete_extra_tab")
 
 if pagina == 'Cadastros - FINANCEIRO':
     tab1, tab2 = st.tabs(["Cadastro financeiro", "Cadastro fiscal"])
