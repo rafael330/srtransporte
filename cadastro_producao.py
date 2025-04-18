@@ -6,7 +6,7 @@ import time
 def main(form_key_suffix=""):
     # Configuração inicial
     if 'pagina' not in st.session_state:
-        st.session_state.pagina = 'formulario'  # 'formulario', 'progresso', 'sucesso'
+        st.session_state.pagina = 'formulario'
     
     # CSS para remover a borda do formulário
     st.markdown("""
@@ -132,7 +132,6 @@ def main(form_key_suffix=""):
                 conn.close()
     
     # Página do formulário
-    # Página do formulário - TODOS os elementos com keys únicas
     def mostrar_formulario(suffix):
         st.title("Novo Cadastro de Carregamento")
         
@@ -141,9 +140,7 @@ def main(form_key_suffix=""):
         placas_info = buscar_placas()
         cidades = buscar_cidades()
         
-        # Formulário com key única
         with st.form(key=f"form_producao_{suffix}", clear_on_submit=True):
-            # Campos com keys únicas baseadas no sufixo
             id_registro = st.text_input(
                 "ID (para edição, deixe vazio para novo cadastro)",
                 key=f"id_registro_{suffix}"
@@ -233,7 +230,6 @@ def main(form_key_suffix=""):
                 key=f"cubagem_{suffix}"
             )
 
-            # Botão de submit também com key única
             if st.form_submit_button(
                 "Enviar",
                 key=f"submit_{suffix}"
@@ -262,14 +258,12 @@ def main(form_key_suffix=""):
                         st.session_state.dados = dados
                         st.session_state.pagina = 'progresso'
                         st.rerun()
-                        
                     except ValueError:
                         st.error("Formato de data inválido. Use dd/mm/aaaa")
-    
+
     # Página de progresso
     def mostrar_progresso():
         st.empty()
-        
         barra = st.progress(0)
         for i in range(100):
             time.sleep(0.03)
@@ -286,19 +280,20 @@ def main(form_key_suffix=""):
         st.empty()
         st.success("✅ Dados salvos com sucesso!")
         
-        if st.button("🆕 Novo Cadastro"):
+        if st.button("🆕 Novo Cadastro", key="novo_cadastro"):
             for key in list(st.session_state.keys()):
-                del st.session_state[key]
+                if key != 'pagina':
+                    del st.session_state[key]
             st.session_state.pagina = 'formulario'
             st.rerun()
-    
+
     # Controle de páginas
-   if st.session_state.pagina == 'formulario':
-        mostrar_formulario(form_key_suffix)  # Passa o sufixo único
+    if st.session_state.pagina == 'formulario':
+        mostrar_formulario(form_key_suffix)
     elif st.session_state.pagina == 'progresso':
         mostrar_progresso()
     elif st.session_state.pagina == 'sucesso':
         mostrar_sucesso()
 
-if __name__ == '__main__' or 'streamlit' in __import__('sys').modules:
-    main("local")  # Para execução direta
+if __name__ == '__main__':
+    main("local")
