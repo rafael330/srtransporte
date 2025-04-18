@@ -230,10 +230,9 @@ def main(form_key_suffix=""):
                 key=f"cubagem_{suffix}"
             )
 
-            if st.form_submit_button(
-                "Enviar",
-                key=f"submit_{suffix}"
-            ):
+            # CORREÇÃO: Form submit button sem parâmetro key
+            submitted = st.form_submit_button("Enviar")
+            if submitted:
                 if not all([cliente, motorista, placa, data, cid_1]):
                     st.error("Preencha todos os campos obrigatórios (*)")
                 else:
