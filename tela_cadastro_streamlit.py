@@ -71,7 +71,7 @@ if pagina == 'Cadastros - FINANCEIRO':
     with tab1:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_financeiro.py"
         executar_arquivo_remoto(url,
-                               form_key_suffix="financeiro")
+                               form_key_suffix="financeiro_tab")
 
     with tab2:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_fiscal.py"
