@@ -1,7 +1,7 @@
 import streamlit as st
 import mysql.connector
 
-def main():
+def main(form_key_suffix=""):
     def conectar_banco():
         try:
             conn = mysql.connector.connect(
@@ -17,7 +17,7 @@ def main():
             return None
         
     def salvar_dados(tabela, campos, valores, id_registro):
-        with st.spinner("Salvando dados...", show_time=True):
+        with st.spinner("Salvando dados..."):     
             conn = conectar_banco()
             if not conn:
                 st.error("Erro ao conectar ao banco de dados.")
@@ -31,45 +31,106 @@ def main():
                 else:
                     query = f"INSERT INTO {tabela} ({', '.join(campos)}) VALUES ({', '.join(['%s'] * len(campos))})"
                     cursor.execute(query, valores)
-    
+                
                 conn.commit()
-                cursor.close()
-                conn.close()
                 st.success("Dados salvos com sucesso!")
                 
-                st.session_state.clear()
+                # Limpa apenas os campos do formulário
+                keys_to_clear = [f'id_veiculo_{form_key_suffix}',
+                                f'placa_{form_key_suffix}',
+                                f'perfil_{form_key_suffix}',
+                                f'proprietario_{form_key_suffix}',
+                                f'cubagem_{form_key_suffix}']
+                for key in keys_to_clear:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                
                 st.rerun()
             except mysql.connector.Error as err:
-                st.error(f"Erro ao salvar dados no banco de dados: {err}")
-            except Exception as e:
-                st.error(f"Erro inesperado: {str(e)}")
+                st.error(f"Erro ao salvar dados: {err}")
+            finally:
+                if conn.is_connected():
+                    cursor.close()
+                    conn.close()
     
-    def cadastro_veiculo():
+    def cadastro_veiculo(suffix):
         st.title("Cadastro de Veículo")
-    
-        if 'id_registro'not in st.session_state:
-            st.session_state.id_registro = ''    
-        if 'placa_1'not in st.session_state:        
-            st.session_state.placa_1 = ''            
-        if 'perfil_1'not in st.session_state:        
-            st.session_state.perfil_1 = ''            
-        if 'proprietario_1'not in st.session_state:        
-            st.session_state.proprietario_1 = ''
-        if 'cubagem_1'not in st.session_state:        
-            st.session_state.cubagem_1 = ''
         
-        id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_veiculo')
-        placa = st.text_input("Placa", key='placa_1')
-        perfil = st.text_input("Perfil", key='perfil_1')
-        proprietario = st.text_input("Proprietário", key='proprietario_1')
-        cubagem = st.text_input("Cubagem", key='cubagem_1')
+        # Inicializa session_state com valores padrão
+        defaults = {
+            f'id_veiculo_{suffix}': '',
+            f'placa_{suffix}': '',
+            f'perfil_{suffix}': '',
+            f'proprietario_{suffix}': '',
+            f'cubagem_{suffix}': ''
+        }
+        
+        for key, value in defaults.items():
+            if key not in st.session_state:
+                st.session_state[key] = value
+        
+        # Formulário principal
+        with st.form(key=f"form_veiculo_{suffix}"):
+            # Layout em colunas para melhor organização
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Campo ID
+                id_registro = st.text_input(
+                    "ID (deixe vazio para novo cadastro)",
+                    value=st.session_state[f'id_veiculo_{suffix}'],
+                    key=f"input_id_veiculo_{suffix}"
+                )
+                
+                # Campo Placa
+                placa = st.text_input(
+                    "Placa*",
+                    value=st.session_state[f'placa_{suffix}'],
+                    key=f"input_placa_{suffix}"
+                )
+                
+                # Campo Perfil
+                perfil = st.text_input(
+                    "Perfil",
+                    value=st.session_state[f'perfil_{suffix}'],
+                    key=f"input_perfil_{suffix}"
+                )
+            
+            with col2:
+                # Campo Proprietário
+                proprietario = st.text_input(
+                    "Proprietário",
+                    value=st.session_state[f'proprietario_{suffix}'],
+                    key=f"input_proprietario_{suffix}"
+                )
+                
+                # Campo Cubagem
+                cubagem = st.text_input(
+                    "Cubagem (m³)",
+                    value=st.session_state[f'cubagem_{suffix}'],
+                    key=f"input_cubagem_{suffix}"
+                )
+            
+            # Botão de submit dentro do form
+            submitted = st.form_submit_button("Salvar Cadastro")
+            
+            if submitted:
+                if not placa:  # Validação do campo obrigatório
+                    st.error("O campo Placa é obrigatório!")
+                else:
+                    # Atualiza session_state
+                    st.session_state[f'id_veiculo_{suffix}'] = id_registro
+                    st.session_state[f'placa_{suffix}'] = placa
+                    st.session_state[f'perfil_{suffix}'] = perfil
+                    st.session_state[f'proprietario_{suffix}'] = proprietario
+                    st.session_state[f'cubagem_{suffix}'] = cubagem
+                    
+                    # Prepara dados para salvar
+                    campos = ['placa', 'perfil', 'proprietario', 'cubagem']
+                    valores = (placa, perfil, proprietario, cubagem)
+                    salvar_dados('cad_vei', campos, valores, id_registro)
     
-        if st.button("Salvar", key='salvar_veiculo'):
-            campos = ['placa_1', 'perfil_1', 'proprietario_1', 'cubagem_1']
-            valores = (placa, perfil, proprietario, cubagem)
-            salvar_dados('cad_vei', campos, valores, id_registro)
-    
-    cadastro_veiculo()  
+    cadastro_veiculo(form_key_suffix)
 
-if __name__ == '__main__' or 'streamlit' in __import__('sys').modules:
-    main()
+if __name__ == '__main__':
+    main("local")
