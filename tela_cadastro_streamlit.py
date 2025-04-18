@@ -76,7 +76,7 @@ if pagina == 'Cadastros - FINANCEIRO':
     with tab2:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_fiscal.py"
         executar_arquivo_remoto(url,
-                               form_key_suffix="fiscal")
+                               form_key_suffix="fiscal_tab")
 
 if pagina == 'Monitoramento':
     tab1, tab2 = st.tabs(["Baixa financeira", "Preventivo de entrega"])
