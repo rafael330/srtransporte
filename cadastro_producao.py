@@ -3,7 +3,7 @@ import mysql.connector
 from datetime import datetime
 import time
 
-def cadastro_producao():
+def main():
     # Configuração inicial
     if 'pagina' not in st.session_state:
         st.session_state.pagina = 'formulario'  # 'formulario', 'progresso', 'sucesso'
@@ -238,5 +238,5 @@ def cadastro_producao():
     elif st.session_state.pagina == 'sucesso':
         mostrar_sucesso()
 
-if __name__ == "__main__":
-    cadastro_producao()
+if __name__ == '__main__' or 'streamlit' in __import__('sys').modules:
+    main()
