@@ -132,7 +132,7 @@ def main():
                 conn.close()
     
     # Página do formulário
-    def mostrar_formulario():
+    def mostrar_formulario(form_key_suffix=""):
         st.title("Novo Cadastro de Carregamento")
         
         clientes = buscar_clientes()
@@ -140,7 +140,7 @@ def main():
         placas_info = buscar_placas()
         cidades = buscar_cidades()
     
-        with st.form("form_cadastro", clear_on_submit=True):
+        with st.form(key=f"form_cadastro_{form_key_suffix}", clear_on_submit=True):
             id_registro = st.text_input("ID (para edição, deixe vazio para novo cadastro)")
             
             col1, col2 = st.columns(2)
