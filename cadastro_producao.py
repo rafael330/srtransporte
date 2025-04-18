@@ -139,8 +139,9 @@ def main():
         motoristas = buscar_motoristas()
         placas_info = buscar_placas()
         cidades = buscar_cidades()
-    
-        with st.form(key=f"form_cadastro_{form_key_suffix}", clear_on_submit=True):
+        
+        form_key = f'form_cadastro_{form_key_sufix}'        
+        with st.form(key=form_key, clear_on_submit=True):
             id_registro = st.text_input("ID (para edição, deixe vazio para novo cadastro)")
             
             col1, col2 = st.columns(2)
