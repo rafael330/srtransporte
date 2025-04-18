@@ -21,7 +21,15 @@ def executar_arquivo_remoto(url):
     try:
         response = requests.get(url)
         if response.status_code == 200:
-            exec(response.text)
+            # Cria um namespace local para execução
+            local_vars = {}
+            exec(response.text, globals(), local_vars)
+            
+            # Chama a função principal se existir
+            if 'cadastro_producao' in local_vars:
+                local_vars['cadastro_producao']()
+            else:
+                st.error("Função principal não encontrada no arquivo remoto")
         else:
             st.error(f"Arquivo não encontrado no repositório: {url}")
     except Exception as e:
