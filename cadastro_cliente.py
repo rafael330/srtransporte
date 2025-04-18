@@ -1,7 +1,7 @@
 import streamlit as st
 import mysql.connector
 
-def main(form_key_suffix=""):  # Adicionado parâmetro para sufixo único
+def main(form_key_suffix=""):
     def conectar_banco():
         try:
             conn = mysql.connector.connect(
@@ -17,7 +17,7 @@ def main(form_key_suffix=""):  # Adicionado parâmetro para sufixo único
             return None
         
     def salvar_dados(tabela, campos, valores, id_registro):
-        with st.spinner("Salvando dados...", show_time=True):     
+        with st.spinner("Salvando dados..."):     
             conn = conectar_banco()
             if not conn:
                 st.error("Erro ao conectar ao banco de dados.")
@@ -33,60 +33,89 @@ def main(form_key_suffix=""):  # Adicionado parâmetro para sufixo único
                     cursor.execute(query, valores)
                 
                 conn.commit()
-                cursor.close()
-                conn.close()        
                 st.success("Dados salvos com sucesso!")
                 
-                st.session_state.clear()
+                # Limpa apenas os campos do formulário, mantendo outras variáveis de sessão
+                keys_to_clear = [f'id_cliente_{form_key_suffix}', 
+                                f'cod_cliente_{form_key_suffix}',
+                                f'cliente_{form_key_suffix}',
+                                f'cnpj_{form_key_suffix}']
+                for key in keys_to_clear:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                
                 st.rerun()
             except mysql.connector.Error as err:
-                st.error(f"Erro ao salvar dados no banco de dados: {err}")
-            except Exception as e:
-                st.error(f"Erro inesperado: {str(e)}")
+                st.error(f"Erro ao salvar dados: {err}")
+            finally:
+                if conn.is_connected():
+                    cursor.close()
+                    conn.close()
     
-    def cadastro_cliente(suffix):  # Adicionado parâmetro suffix
+    def cadastro_cliente(suffix):
         st.title("Cadastro de Cliente")
-    
-        # Inicializa session_state com keys únicas
-        if f'id_registro_{suffix}' not in st.session_state:
-            st.session_state[f'id_registro_{suffix}'] = ''    
-        if f'cod_cliente_{suffix}' not in st.session_state:        
-            st.session_state[f'cod_cliente_{suffix}'] = ''            
-        if f'cliente_{suffix}' not in st.session_state:        
-            st.session_state[f'cliente_{suffix}'] = ''            
-        if f'cnpj_{suffix}' not in st.session_state:        
-            st.session_state[f'cnpj_{suffix}'] = ''
         
-        # Formulário com keys únicas
+        # Inicializa session_state com valores padrão se não existirem
+        defaults = {
+            f'id_cliente_{suffix}': '',
+            f'cod_cliente_{suffix}': '',
+            f'cliente_{suffix}': '',
+            f'cnpj_{suffix}': ''
+        }
+        
+        for key, value in defaults.items():
+            if key not in st.session_state:
+                st.session_state[key] = value
+        
+        # Formulário principal com submit button
         with st.form(key=f"form_cliente_{suffix}"):
+            # Campo ID
             id_registro = st.text_input(
-                "ID (deixe vazio para novo cadastro)", 
-                key=f'id_cliente_{suffix}'
+                "ID (deixe vazio para novo cadastro)",
+                value=st.session_state[f'id_cliente_{suffix}'],
+                key=f"input_id_cliente_{suffix}"
             )
+            
+            # Campo Código do Cliente
             cod_cliente = st.text_input(
-                "Código do Cliente", 
-                key=f'cod_cliente_{suffix}'
+                "Código do Cliente*",
+                value=st.session_state[f'cod_cliente_{suffix}'],
+                key=f"input_cod_cliente_{suffix}"
             )
+            
+            # Campo Nome do Cliente
             cliente = st.text_input(
-                "Cliente", 
-                key=f'cliente_{suffix}'
+                "Cliente*",
+                value=st.session_state[f'cliente_{suffix}'],
+                key=f"input_cliente_{suffix}"
             )
+            
+            # Campo CNPJ
             cnpj = st.text_input(
-                "CNPJ", 
-                key=f'cnpj_{suffix}'
+                "CNPJ",
+                value=st.session_state[f'cnpj_{suffix}'],
+                key=f"input_cnpj_{suffix}"
             )
-    
+            
+            # Botão de submit dentro do form
             submitted = st.form_submit_button("Salvar")
+            
             if submitted:
-                campos = ['cod_cliente_1', 'cliente_1', 'cnpj']
-                valores = (
-                    st.session_state[f'cod_cliente_{suffix}'],
-                    st.session_state[f'cliente_{suffix}'],
-                    st.session_state[f'cnpj_{suffix}']
-                )
-                salvar_dados('cad_cliente', campos, valores, id_registro)
+                if not cod_cliente or not cliente:
+                    st.error("Os campos marcados com * são obrigatórios!")
+                else:
+                    # Atualiza session_state
+                    st.session_state[f'id_cliente_{suffix}'] = id_registro
+                    st.session_state[f'cod_cliente_{suffix}'] = cod_cliente
+                    st.session_state[f'cliente_{suffix}'] = cliente
+                    st.session_state[f'cnpj_{suffix}'] = cnpj
+                    
+                    # Prepara dados para salvar
+                    campos = ['cod_cliente', 'cliente', 'cnpj']
+                    valores = (cod_cliente, cliente, cnpj)
+                    salvar_dados('cad_cliente', campos, valores, id_registro)
     
-    cadastro_cliente(form_key_suffix)  # Passa o sufixo para a função
+    cadastro_cliente(form_key_suffix)
 
-if __name__ == '__main__' or 'streamlit' in __import__('sys').modules:
-    main("local")  # Para execução direta usa "local" como sufixo
+if __name__ == '__main__':
+    main("local")
