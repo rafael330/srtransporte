@@ -43,7 +43,7 @@ if pagina == 'Cadastros - OPERAÇÃO':
     
     with tab2:
         executar_arquivo_remoto("https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_cliente.py", 
-                               form_key_suffix="cliente")
+                               form_key_suffix="cliente_tab")
 
     with tab3:   
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_motorista.py"
