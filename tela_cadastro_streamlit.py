@@ -53,7 +53,7 @@ if pagina == 'Cadastros - OPERAÇÃO':
     with tab4:   
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_rota.py"
         executar_arquivo_remoto(url, 
-                               form_key_suffix="rota")
+                               form_key_suffix="rota_tab")
 
     with tab5:   
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_veiculo.py"
