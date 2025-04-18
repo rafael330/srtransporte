@@ -88,4 +88,4 @@ if pagina == 'Monitoramento':
     with tab2:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/preventivo_entrega.py"
         executar_arquivo_remoto(url,
-                               form_key_suffix="preventivo")
+                               form_key_suffix="preventivo_tab")
