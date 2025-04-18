@@ -5,15 +5,20 @@ def executar_arquivo_remoto(url, form_key_suffix=""):
     try:
         response = requests.get(url)
         if response.status_code == 200:
-            # Cria um namespace para evitar conflitos
+            # Cria namespace com variáveis essenciais
             namespace = {
-                "form_key_suffix": form_key_suffix  # Passa o sufixo para o arquivo remoto
+                'form_key_suffix': form_key_suffix,
+                'st': st,
+                'session_state': st.session_state
             }
+            # Executa com escopo isolado
             exec(response.text, namespace)
-        else:
-            st.error(f"Arquivo não encontrado: {url}")
+            
+            # Chama main() se existir, passando o sufixo
+            if 'main' in namespace:
+                namespace['main'](form_key_suffix)
     except Exception as e:
-        st.error(f"Erro ao executar o arquivo: {str(e)}")
+        st.error(f"Erro ao executar {url}: {str(e)}")
 
 # Configuração da página
 path = "https://raw.githubusercontent.com/rafael330/srtransporte/main/WhatsApp%20Image%202025-04-09%20at%2021.19.07.png"
