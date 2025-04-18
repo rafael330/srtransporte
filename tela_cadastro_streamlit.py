@@ -79,7 +79,6 @@ if pagina == 'Monitoramento':
     with tab1:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/baixa_financeira.py"
         executar_arquivo_remoto(url)
-
     with tab2:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/preventivo_entrega.py"
         executar_arquivo_remoto(url)
