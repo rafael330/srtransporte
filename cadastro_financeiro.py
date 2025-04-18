@@ -2,6 +2,21 @@ import streamlit as st
 import mysql.connector
 
 def main(form_key_suffix=""):
+    
+    st.markdown("""
+        <style>
+            .stForm {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .stForm form {
+                border: none !important;
+                padding: 0 !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    
     def conectar_banco():
         try:
             conn = mysql.connector.connect(
