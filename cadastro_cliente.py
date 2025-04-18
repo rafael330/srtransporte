@@ -1,7 +1,7 @@
 import streamlit as st
 import mysql.connector
 
-def main():
+def main(form_key_suffix=""):  # Adicionado parâmetro para sufixo único
     def conectar_banco():
         try:
             conn = mysql.connector.connect(
@@ -44,29 +44,49 @@ def main():
             except Exception as e:
                 st.error(f"Erro inesperado: {str(e)}")
     
-    def cadastro_cliente():
+    def cadastro_cliente(suffix):  # Adicionado parâmetro suffix
         st.title("Cadastro de Cliente")
     
-        if 'id_registro'not in st.session_state:
-            st.session_state.id_registro = ''    
-        if 'cod_cliente_1'not in st.session_state:        
-            st.session_state.cod_cliente_1 = ''            
-        if 'cliente_1'not in st.session_state:        
-            st.session_state.cliente_1 = ''            
-        if 'cnpj'not in st.session_state:        
-            st.session_state.cnpj = ''
+        # Inicializa session_state com keys únicas
+        if f'id_registro_{suffix}' not in st.session_state:
+            st.session_state[f'id_registro_{suffix}'] = ''    
+        if f'cod_cliente_{suffix}' not in st.session_state:        
+            st.session_state[f'cod_cliente_{suffix}'] = ''            
+        if f'cliente_{suffix}' not in st.session_state:        
+            st.session_state[f'cliente_{suffix}'] = ''            
+        if f'cnpj_{suffix}' not in st.session_state:        
+            st.session_state[f'cnpj_{suffix}'] = ''
         
-        id_registro = st.text_input("ID (deixe vazio para novo cadastro)", key='id_cliente')
-        cod_cliente = st.text_input("Código do Cliente", key='cod_cliente_1')
-        cliente = st.text_input("Cliente", key='cliente_1')
-        cnpj = st.text_input("CNPJ", key='cnpj')
+        # Formulário com keys únicas
+        with st.form(key=f"form_cliente_{suffix}"):
+            id_registro = st.text_input(
+                "ID (deixe vazio para novo cadastro)", 
+                key=f'id_cliente_{suffix}'
+            )
+            cod_cliente = st.text_input(
+                "Código do Cliente", 
+                key=f'cod_cliente_{suffix}'
+            )
+            cliente = st.text_input(
+                "Cliente", 
+                key=f'cliente_{suffix}'
+            )
+            cnpj = st.text_input(
+                "CNPJ", 
+                key=f'cnpj_{suffix}'
+            )
     
-        if st.button("Salvar", key='salvar_cliente'):        
-            campos = ['cod_cliente_1', 'cliente_1', 'cnpj']
-            valores = (cod_cliente, cliente, cnpj)
-            salvar_dados('cad_cliente', campos, valores, id_registro)
+            submitted = st.form_submit_button("Salvar")
+            if submitted:
+                campos = ['cod_cliente_1', 'cliente_1', 'cnpj']
+                valores = (
+                    st.session_state[f'cod_cliente_{suffix}'],
+                    st.session_state[f'cliente_{suffix}'],
+                    st.session_state[f'cnpj_{suffix}']
+                )
+                salvar_dados('cad_cliente', campos, valores, id_registro)
     
-    cadastro_cliente()
+    cadastro_cliente(form_key_suffix)  # Passa o sufixo para a função
 
 if __name__ == '__main__' or 'streamlit' in __import__('sys').modules:
-    main()
+    main("local")  # Para execução direta usa "local" como sufixo
