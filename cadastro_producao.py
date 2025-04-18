@@ -3,7 +3,7 @@ import mysql.connector
 from datetime import datetime
 import time
 
-def main():
+def main(form_key_suffix=""):
     # Configuração inicial
     if 'pagina' not in st.session_state:
         st.session_state.pagina = 'formulario'  # 'formulario', 'progresso', 'sucesso'
@@ -132,7 +132,8 @@ def main():
                 conn.close()
     
     # Página do formulário
-    def mostrar_formulario(form_key_suffix=""):
+    # Página do formulário - TODOS os elementos com keys únicas
+    def mostrar_formulario(suffix):
         st.title("Novo Cadastro de Carregamento")
         
         clientes = buscar_clientes()
@@ -140,43 +141,103 @@ def main():
         placas_info = buscar_placas()
         cidades = buscar_cidades()
         
-        form_key = f'form_cadastro_{form_key_sufix}'        
-        with st.form(key=form_key, clear_on_submit=True):
-            id_registro = st.text_input("ID (para edição, deixe vazio para novo cadastro)")
+        # Formulário com key única
+        with st.form(key=f"form_producao_{suffix}", clear_on_submit=True):
+            # Campos com keys únicas baseadas no sufixo
+            id_registro = st.text_input(
+                "ID (para edição, deixe vazio para novo cadastro)",
+                key=f"id_registro_{suffix}"
+            )
             
             col1, col2 = st.columns(2)
             with col1:
-                cliente = st.selectbox("Cliente*", [""] + list(clientes.keys()))
-                cod_cliente = st.text_input("Código do Cliente", value=clientes.get(cliente, ""), disabled=True)
+                cliente = st.selectbox(
+                    "Cliente*", 
+                    [""] + list(clientes.keys()),
+                    key=f"cliente_{suffix}"
+                )
+                cod_cliente = st.text_input(
+                    "Código do Cliente", 
+                    value=clientes.get(cliente, ""), 
+                    disabled=True,
+                    key=f"cod_cliente_{suffix}"
+                )
             with col2:
-                motorista = st.selectbox("Motorista*", [""] + list(motoristas.keys()))
-                cpf_motorista = st.text_input("CPF do Motorista", value=motoristas.get(motorista, ""), disabled=True)
-    
+                motorista = st.selectbox(
+                    "Motorista*", 
+                    [""] + list(motoristas.keys()),
+                    key=f"motorista_{suffix}"
+                )
+                cpf_motorista = st.text_input(
+                    "CPF do Motorista", 
+                    value=motoristas.get(motorista, ""), 
+                    disabled=True,
+                    key=f"cpf_motorista_{suffix}"
+                )
+
             col1, col2, col3 = st.columns(3)
             with col1:
-                placa = st.selectbox("Placa*", [""] + list(placas_info.keys()))
+                placa = st.selectbox(
+                    "Placa*", 
+                    [""] + list(placas_info.keys()),
+                    key=f"placa_{suffix}"
+                )
             with col2:
-                perfil_vei = st.text_input("Perfil do Veículo", value=placas_info.get(placa, {}).get('perfil', ''), disabled=True)
+                perfil_vei = st.text_input(
+                    "Perfil do Veículo", 
+                    value=placas_info.get(placa, {}).get('perfil', ''), 
+                    disabled=True,
+                    key=f"perfil_vei_{suffix}"
+                )
             with col3:
-                proprietario_vei = st.text_input("Proprietário", value=placas_info.get(placa, {}).get('proprietario', ''), disabled=True)
-    
+                proprietario_vei = st.text_input(
+                    "Proprietário", 
+                    value=placas_info.get(placa, {}).get('proprietario', ''), 
+                    disabled=True,
+                    key=f"proprietario_vei_{suffix}"
+                )
+
             col1, col2 = st.columns(2)
             with col1:
-                minuta_ot = st.text_input("Minuta/OT")
+                minuta_ot = st.text_input(
+                    "Minuta/OT",
+                    key=f"minuta_ot_{suffix}"
+                )
             with col2:
-                id_carga_cvia = st.text_input("ID carga / CVia")
-    
-            data = st.text_input("Data* (Formato: dd/mm/aaaa)")
-    
+                id_carga_cvia = st.text_input(
+                    "ID carga / CVia",
+                    key=f"id_carga_cvia_{suffix}"
+                )
+
+            data = st.text_input(
+                "Data* (Formato: dd/mm/aaaa)",
+                key=f"data_{suffix}"
+            )
+
             col1, col2 = st.columns(2)
             with col1:
-                cid_1 = st.selectbox("Cidade*", [""] + cidades)
+                cid_1 = st.selectbox(
+                    "Cidade*", 
+                    [""] + cidades,
+                    key=f"cid_1_{suffix}"
+                )
             with col2:
-                mod_1 = st.selectbox("Modalidade", ["", "ABA", "VENDA"])
-    
-            cubagem = st.text_input("Cubagem")
-    
-            if st.form_submit_button("Enviar"):
+                mod_1 = st.selectbox(
+                    "Modalidade", 
+                    ["", "ABA", "VENDA"],
+                    key=f"mod_1_{suffix}"
+                )
+
+            cubagem = st.text_input(
+                "Cubagem",
+                key=f"cubagem_{suffix}"
+            )
+
+            # Botão de submit também com key única
+            if st.form_submit_button(
+                "Enviar",
+                key=f"submit_{suffix}"
+            ):
                 if not all([cliente, motorista, placa, data, cid_1]):
                     st.error("Preencha todos os campos obrigatórios (*)")
                 else:
@@ -232,12 +293,12 @@ def main():
             st.rerun()
     
     # Controle de páginas
-    if st.session_state.pagina == 'formulario':
-        mostrar_formulario()
+   if st.session_state.pagina == 'formulario':
+        mostrar_formulario(form_key_suffix)  # Passa o sufixo único
     elif st.session_state.pagina == 'progresso':
         mostrar_progresso()
     elif st.session_state.pagina == 'sucesso':
         mostrar_sucesso()
 
 if __name__ == '__main__' or 'streamlit' in __import__('sys').modules:
-    main()
+    main("local")  # Para execução direta
