@@ -44,7 +44,7 @@ def main(form_key_suffix=""):
                 try:
                     # Lê o arquivo mantendo os formatos originais
                     df = pd.read_excel(uploaded_file)
-                    df['DT. IMPORTACAO'] = pd.to_datetime(df['DT. IMPORTACAO'], format='%d/%m/%Y')dt.date
+                    df['DT. IMPORTACAO'] = pd.to_datetime(df['DT. IMPORTACAO'], format='%d/%m/%Y').dt.date
                     
                     # Mostra pré-visualização
                     st.write("Pré-visualização dos dados:")
