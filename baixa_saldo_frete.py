@@ -58,7 +58,7 @@ def main(form_key_suffix=""):
                         SELECT 
                             f.saldo_frete, 
                             i.motorista, 
-                            f.proprietario_vei as proprietario
+                            f.proprietario_vei
                         FROM tela_fin f
                         LEFT JOIN tela_inicial i ON f.id = i.id
                         WHERE f.id = %s
