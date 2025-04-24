@@ -66,7 +66,7 @@ if pagina == 'Cadastros - OPERAÇÃO':
                                form_key_suffix="frete_extra_tab")
 
 if pagina == 'Cadastros - FINANCEIRO':
-    tab1, tab2 = st.tabs(["Cadastro financeiro", "Cadastro fiscal"])
+    tab1, tab2, tab3 = st.tabs(["Cadastro financeiro", "Cadastro fiscal", "Baixa saldo de frete"])
 
     with tab1:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_financeiro.py"
@@ -77,6 +77,10 @@ if pagina == 'Cadastros - FINANCEIRO':
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/cadastro_fiscal.py"
         executar_arquivo_remoto(url,
                                form_key_suffix="fiscal_tab")
+    with tab3:
+        url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/baixa_saldo_frete.py"
+        executar_arquivo_remoto(url,
+                               form_key_suffix="baixa_saldo_tab")
 
 if pagina == 'Monitoramento':
     tab1, tab2 = st.tabs(["Baixa financeira", "Preventivo de entrega"])
