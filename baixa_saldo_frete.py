@@ -45,6 +45,17 @@ def main(form_key_suffix=""):
             st.session_state[f'motorista_{suffix}'] = ""
             st.session_state[f'proprietario_{suffix}'] = ""
             st.session_state[f'last_id_baixa_frete_{suffix}'] = ""
+            st.session_state[f'clear_form_{suffix}'] = False
+    
+        # Limpa o formulário se a flag estiver ativa
+        if st.session_state.get(f'clear_form_{suffix}', False):
+            st.session_state[f'id_baixa_frete_{suffix}'] = ""
+            st.session_state[f'saldo_frete_{suffix}'] = "0.00"
+            st.session_state[f'motorista_{suffix}'] = ""
+            st.session_state[f'proprietario_{suffix}'] = ""
+            st.session_state[f'last_id_baixa_frete_{suffix}'] = ""
+            st.session_state[f'clear_form_{suffix}'] = False
+            st.rerun()
     
         # Função para buscar todos os dados pelo ID nas tabelas corretas
         def buscar_dados(id_baixa_frete):
@@ -88,10 +99,6 @@ def main(form_key_suffix=""):
                 if id_input and id_input != st.session_state[f'last_id_baixa_frete_{suffix}']:
                     dados = buscar_dados(id_input)
                     if dados:
-                        # Atualiza os valores conforme especificado:
-                        # saldo -> saldo_frete (tela_fin)
-                        # motorista -> motorista (tela_inicial)
-                        # proprietario -> proprietario_vei (tela_inicial)
                         st.session_state[f'saldo_frete_{suffix}'] = dados.get('saldo_frete', "0.00") or "0.00"
                         st.session_state[f'motorista_{suffix}'] = dados.get('motorista', "")
                         st.session_state[f'proprietario_{suffix}'] = dados.get('proprietario', "")
@@ -101,9 +108,7 @@ def main(form_key_suffix=""):
                         st.session_state[f'proprietario_{suffix}'] = ""
                         st.warning("Nenhum dado encontrado para este ID")
                     
-                    # Atualiza o último ID pesquisado
                     st.session_state[f'last_id_baixa_frete_{suffix}'] = id_input
-                    # Atualiza o ID no session_state
                     st.session_state[f'id_baixa_frete_{suffix}'] = id_input
     
             with col2:
@@ -188,15 +193,8 @@ def main(form_key_suffix=""):
                                 conn.commit()
                                 st.success("Dados salvos com sucesso!")
                                 
-                                # Limpa os campos após salvar
-                                st.session_state[f'id_baixa_frete_{suffix}'] = ""
-                                st.session_state[f'saldo_frete_{suffix}'] = "0.00"
-                                st.session_state[f'motorista_{suffix}'] = ""
-                                st.session_state[f'proprietario_{suffix}'] = ""
-                                st.session_state[f'last_id_baixa_frete_{suffix}'] = ""
-                                
-                                # Força o rerun para atualizar os campos
-                                st.rerun()
+                                # Ativa a flag para limpar o formulário no próximo render
+                                st.session_state[f'clear_form_{suffix}'] = True
                                 
                         except mysql.connector.Error as err:
                             if conn:
