@@ -37,7 +37,7 @@ def main(form_key_suffix=""):
         # Inicializa session_state com keys únicas
         defaults = {
             f'id_baixa_frete_{suffix}': "",
-            f'saldo_frete_{suffix}': "",
+            f'saldo_frete_{suffix}': "0.00",  # Inicializa com valor padrão para evitar erro decimal
             f'motorista_{suffix}': "",
             f'proprietario_{suffix}': "",
             f'last_id_baixa_frete_{suffix}': ""            
@@ -53,15 +53,14 @@ def main(form_key_suffix=""):
             if conn:
                 try:
                     cursor = conn.cursor(dictionary=True)
-                    # Consulta unificada para obter todos os dados necessários
+                    # Consulta corrigida para buscar da tela_inicial
                     query = """
                         SELECT 
-                            f.saldo_frete, 
-                            i.motorista, 
-                            f.proprietario_vei
-                        FROM tela_fin f
-                        LEFT JOIN tela_inicial i ON f.id = i.id
-                        WHERE f.id = %s
+                            saldo_frete, 
+                            motorista, 
+                            proprietario_vei as proprietario
+                        FROM tela_inicial
+                        WHERE id = %s
                     """
                     cursor.execute(query, (id_baixa_frete,))
                     resultado = cursor.fetchone()
@@ -89,11 +88,11 @@ def main(form_key_suffix=""):
                 if id_baixa_frete and id_baixa_frete != st.session_state[f'last_id_baixa_frete_{suffix}']:
                     dados = buscar_dados(id_baixa_frete)
                     if dados:
-                        st.session_state[f'saldo_frete_{suffix}'] = dados.get('saldo_frete', "")
+                        st.session_state[f'saldo_frete_{suffix}'] = dados.get('saldo_frete', "0.00") or "0.00"  # Garante valor padrão
                         st.session_state[f'motorista_{suffix}'] = dados.get('motorista', "")
                         st.session_state[f'proprietario_{suffix}'] = dados.get('proprietario', "")
                     else:
-                        st.session_state[f'saldo_frete_{suffix}'] = ""
+                        st.session_state[f'saldo_frete_{suffix}'] = "0.00"
                         st.session_state[f'motorista_{suffix}'] = ""
                         st.session_state[f'proprietario_{suffix}'] = ""
                         st.warning("Nenhum dado encontrado para este ID")
@@ -140,7 +139,7 @@ def main(form_key_suffix=""):
                         # Prepara dados para salvar
                         dados = {
                             'id': id_baixa_frete,
-                            'saldo': st.session_state[f'saldo_frete_{suffix}'],
+                            'saldo': float(st.session_state[f'saldo_frete_{suffix}'] or 0),  # Converte para float
                             'motorista': st.session_state[f'motorista_{suffix}'],
                             'proprietario': st.session_state[f'proprietario_{suffix}']                            
                         }
@@ -189,7 +188,7 @@ def main(form_key_suffix=""):
                                 
                                 # Limpa os campos do formulário
                                 st.session_state[f'id_baixa_frete_{suffix}'] = ""
-                                st.session_state[f'saldo_frete_{suffix}'] = ""
+                                st.session_state[f'saldo_frete_{suffix}'] = "0.00"
                                 st.session_state[f'motorista_{suffix}'] = ""
                                 st.session_state[f'proprietario_{suffix}'] = ""
                                 st.session_state[f'last_id_baixa_frete_{suffix}'] = ""
@@ -199,6 +198,9 @@ def main(form_key_suffix=""):
                             except mysql.connector.Error as err:
                                 conn.rollback()
                                 st.error(f"Erro ao salvar dados: {err}")
+                            except ValueError as ve:
+                                conn.rollback()
+                                st.error(f"Valor inválido para saldo: {ve}")
                             finally:
                                 if conn and conn.is_connected():
                                     cursor.close()
