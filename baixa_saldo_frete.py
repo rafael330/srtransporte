@@ -37,16 +37,23 @@ def main(form_key_suffix=""):
         # Chave única para o formulário
         form_key = f"baixa_saldo_{suffix}"
         
-        # Inicializa session_state apenas uma vez
-        if f'initialized_{form_key}' not in st.session_state:
-            st.session_state[f'initialized_{form_key}'] = True
-            st.session_state[f'id_baixa_frete_{suffix}'] = ""
-            st.session_state[f'saldo_frete_{suffix}'] = "0.00"
-            st.session_state[f'motorista_{suffix}'] = ""
-            st.session_state[f'proprietario_{suffix}'] = ""
-            st.session_state[f'last_id_baixa_frete_{suffix}'] = ""
-            st.session_state[f'clear_form_{suffix}'] = False
-    
+        # Inicializa todas as chaves necessárias no session_state
+        required_keys = [
+            f'id_baixa_frete_{suffix}',
+            f'saldo_frete_{suffix}',
+            f'motorista_{suffix}',
+            f'proprietario_{suffix}',
+            f'last_id_baixa_frete_{suffix}',
+            f'clear_form_{suffix}'
+        ]
+        
+        for key in required_keys:
+            if key not in st.session_state:
+                if 'saldo' in key:
+                    st.session_state[key] = "0.00"
+                else:
+                    st.session_state[key] = ""
+        
         # Limpa o formulário se a flag estiver ativa
         if st.session_state.get(f'clear_form_{suffix}', False):
             st.session_state[f'id_baixa_frete_{suffix}'] = ""
@@ -63,7 +70,6 @@ def main(form_key_suffix=""):
             if conn:
                 try:
                     cursor = conn.cursor(dictionary=True)
-                    # Consulta que busca saldo_frete da tela_fin e motorista/proprietario da tela_inicial
                     query = """
                         SELECT 
                             f.saldo_frete,
@@ -88,14 +94,14 @@ def main(form_key_suffix=""):
             col1, col2 = st.columns(2)
             
             with col1:
-                # Campo ID - usa o valor atual do session_state
+                # Campo ID
                 id_input = st.text_input(
                     "ID* (obrigatório)", 
                     key=f'id_input_{suffix}',
                     value=st.session_state[f'id_baixa_frete_{suffix}']
                 )
                 
-                # Quando o ID é alterado, busca os dados nas tabelas corretas
+                # Busca automática quando o ID é alterado
                 if id_input and id_input != st.session_state[f'last_id_baixa_frete_{suffix}']:
                     dados = buscar_dados(id_input)
                     if dados:
@@ -112,7 +118,6 @@ def main(form_key_suffix=""):
                     st.session_state[f'id_baixa_frete_{suffix}'] = id_input
     
             with col2:
-                # Campo de saldo (apenas exibição)
                 st.text_input(
                     "Saldo de frete", 
                     value=st.session_state[f'saldo_frete_{suffix}'],
@@ -120,7 +125,6 @@ def main(form_key_suffix=""):
                     disabled=True
                 )
     
-            # Campos financeiros
             col1, col2 = st.columns(2)
             with col1:
                 st.text_input(
@@ -136,7 +140,8 @@ def main(form_key_suffix=""):
                     key=f'display_proprietario_{suffix}',
                     disabled=True
                 )
-    
+            
+            # Botão de submit CORRETO usando st.form_submit_button
             submitted = st.form_submit_button("Salvar Dados Financeiros")
             
             if submitted:
@@ -145,7 +150,6 @@ def main(form_key_suffix=""):
                 else:
                     with st.spinner("Salvando dados..."):
                         try:
-                            # Converte o saldo para float
                             saldo = float(st.session_state[f'saldo_frete_{suffix}'] or 0)
                             
                             dados = {
@@ -158,8 +162,6 @@ def main(form_key_suffix=""):
                             conn = conectar_banco()
                             if conn:
                                 cursor = conn.cursor()
-                                
-                                # Verifica se é atualização ou inserção
                                 cursor.execute("SELECT id FROM baixa_saldo WHERE id = %s", (id_input,))
                                 existe = cursor.fetchone()
                                 
@@ -192,8 +194,6 @@ def main(form_key_suffix=""):
                                 
                                 conn.commit()
                                 st.success("Dados salvos com sucesso!")
-                                
-                                # Ativa a flag para limpar o formulário no próximo render
                                 st.session_state[f'clear_form_{suffix}'] = True
                                 
                         except mysql.connector.Error as err:
