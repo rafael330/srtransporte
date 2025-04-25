@@ -94,7 +94,7 @@ def main(form_key_suffix=""):
             
             campos = [
                 'data', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
-                'placa', 'perfil_vei', 'proprietario_vei', 'minuta_ot',
+                'placa', 'perfil_vei', 'proprietario_vei',
                 'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1'
             ]
             
@@ -107,7 +107,6 @@ def main(form_key_suffix=""):
                 dados['placa'],
                 dados['perfil_vei'],
                 dados['proprietario_vei'],
-                dados['minuta_ot'],
                 dados['id_carga_cvia'],
                 dados['cubagem'],
                 dados['cid_1'],
@@ -194,17 +193,10 @@ def main(form_key_suffix=""):
                     key=f"proprietario_vei_{suffix}"
                 )
 
-            col1, col2 = st.columns(2)
-            with col1:
-                minuta_ot = st.text_input(
-                    "Minuta/OT",
-                    key=f"minuta_ot_{suffix}"
-                )
-            with col2:
-                id_carga_cvia = st.text_input(
-                    "ID carga / CVia",
-                    key=f"id_carga_cvia_{suffix}"
-                )
+            id_carga_cvia = st.text_input(
+                "ID carga / CVia",
+                key=f"id_carga_cvia_{suffix}"
+            )
 
             data = st.text_input(
                 "Data* (Formato: dd/mm/aaaa)",
@@ -247,7 +239,6 @@ def main(form_key_suffix=""):
                             'placa': placa,
                             'perfil_vei': placas_info.get(placa, {}).get('perfil', ''),
                             'proprietario_vei': placas_info.get(placa, {}).get('proprietario', ''),
-                            'minuta_ot': minuta_ot,
                             'id_carga_cvia': id_carga_cvia,
                             'cubagem': cubagem,
                             'cid_1': cid_1,
