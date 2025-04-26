@@ -83,13 +83,9 @@ if pagina == 'Cadastros - FINANCEIRO':
                                form_key_suffix="baixa_saldo_tab")
 
 if pagina == 'Monitoramento':
-    tab1, tab2 = st.tabs(["Baixa financeira", "Preventivo de entrega"])
+    tab1, tab2 = st.tabs(["Baixa financeira"])
 
     with tab1:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/baixa_financeira.py"
         executar_arquivo_remoto(url,
                                form_key_suffix="baixa_tab")
-    with tab2:
-        url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/preventivo_entrega.py"
-        executar_arquivo_remoto(url,
-                               form_key_suffix="preventivo_tab")
