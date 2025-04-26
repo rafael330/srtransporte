@@ -37,29 +37,12 @@ def main(form_key_suffix=""):
             f'valor_carga_fiscal_{suffix}': "",
             f'valor_frete_fiscal_{suffix}': "",
             f'id_fiscal_{suffix}': "",
-            f'last_id_fiscal_{suffix}': "",
             f'last_cliente_{suffix}': ""
         }
         
         for key, value in defaults.items():
             if key not in st.session_state:
                 st.session_state[key] = value
-    
-        # Função para buscar minuta_ot pelo ID
-        def buscar_minuta_por_id(id_registro):
-            conn = conectar_banco()
-            if conn:
-                try:
-                    cursor = conn.cursor()
-                    query = "SELECT minuta_ot FROM tela_inicial WHERE id = %s"
-                    cursor.execute(query, (id_registro,))
-                    resultado = cursor.fetchone()
-                    cursor.close()
-                    conn.close()
-                    return resultado[0] if resultado else ""
-                except mysql.connector.Error as err:
-                    st.error(f"Erro ao buscar minuta: {err}")
-            return ""
     
         # Função para buscar clientes e códigos
         def buscar_clientes_e_codigos():
@@ -95,20 +78,12 @@ def main(form_key_suffix=""):
                     value=st.session_state[f'id_fiscal_{suffix}']
                 )
                 
-                # Busca automática da Minuta/OT quando o ID é alterado
-                if id_registro and id_registro != st.session_state[f'last_id_fiscal_{suffix}']:
-                    st.session_state[f'minuta_ot_fiscal_{suffix}'] = buscar_minuta_por_id(id_registro)
-                    st.session_state[f'last_id_fiscal_{suffix}'] = id_registro
-                    if id_registro and not st.session_state[f'minuta_ot_fiscal_{suffix}']:
-                        st.warning("Nenhuma minuta encontrada para este ID")
-    
             with col2:
-                # Campo Minuta/OT (preenchido automaticamente)
-                st.text_input(
-                    "Minuta/OT", 
+                # Campo Minuta/OT (agora manual)
+                st.session_state[f'minuta_ot_fiscal_{suffix}'] = st.text_input(
+                    "Minuta/OT* (obrigatório)", 
                     value=st.session_state[f'minuta_ot_fiscal_{suffix}'],
-                    key=f'display_minuta_ot_{suffix}',
-                    disabled=True
+                    key=f'minuta_ot_{suffix}'
                 )
     
             # Selectbox para cliente
@@ -153,8 +128,8 @@ def main(form_key_suffix=""):
             if submitted:
                 with st.spinner("Salvando dados..."):
                     # Validação dos campos obrigatórios
-                    if not id_registro:
-                        st.error("O campo ID é obrigatório")
+                    if not id_registro or not st.session_state[f'minuta_ot_fiscal_{suffix}']:
+                        st.error("Os campos ID e Minuta/OT são obrigatórios")
                     else:
                         # Prepara dados para salvar
                         dados = {
@@ -221,7 +196,6 @@ def main(form_key_suffix=""):
                                                 f'valor_carga_fiscal_{suffix}',
                                                 f'valor_frete_fiscal_{suffix}',
                                                 f'id_fiscal_{suffix}',
-                                                f'last_id_fiscal_{suffix}',
                                                 f'last_cliente_{suffix}']
                                 for key in keys_to_clear:
                                     if key in st.session_state:
