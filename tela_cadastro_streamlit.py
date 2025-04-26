@@ -83,7 +83,7 @@ if pagina == 'Cadastros - FINANCEIRO':
                                form_key_suffix="baixa_saldo_tab")
 
 if pagina == 'Monitoramento':
-    tab1 = st.tab1("Baixa financeira")
+    tab1, = st.tabs(["Baixa financeira"])
 
     with tab1:
         url = "https://raw.githubusercontent.com/rafael330/srtransporte/main/baixa_financeira.py"
