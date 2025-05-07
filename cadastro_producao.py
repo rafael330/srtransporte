@@ -2,6 +2,7 @@ import streamlit as st
 import mysql.connector
 from datetime import datetime
 import time
+import pymysql
 
 def main(form_key_suffix=""):
     # Configuração inicial
@@ -18,17 +19,18 @@ def main(form_key_suffix=""):
         </style>
     """, unsafe_allow_html=True)
     
-    # Funções do banco de dados
+    # Funções do banco de dados usando PyMySQL como alternativa
     def conectar_banco():
         try:
-            return mysql.connector.connect(
+            return pymysql.connect(
                 user='logitech_rafael',
                 password='admin000',
                 host='db4free.net',
                 port=3306,
-                database='srtransporte'
+                database='srtransporte',
+                cursorclass=pymysql.cursors.DictCursor
             )
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             st.error(f"Erro ao conectar ao banco de dados: {err}")
             return None
     
@@ -36,10 +38,10 @@ def main(form_key_suffix=""):
         conn = conectar_banco()
         if conn:
             try:
-                cursor = conn.cursor()
-                cursor.execute("SELECT cliente, cod_cliente FROM cad_cliente")
-                return {cliente: cod_cliente for cliente, cod_cliente in cursor.fetchall()}
-            except mysql.connector.Error as err:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT cliente, cod_cliente FROM cad_cliente")
+                    return {cliente: cod_cliente for cliente, cod_cliente in cursor.fetchall()}
+            except pymysql.Error as err:
                 st.error(f"Erro ao buscar clientes: {err}")
             finally:
                 conn.close()
@@ -49,10 +51,10 @@ def main(form_key_suffix=""):
         conn = conectar_banco()
         if conn:
             try:
-                cursor = conn.cursor()
-                cursor.execute("SELECT nome, cpf FROM cad_mot")
-                return {nome: cpf for nome, cpf in cursor.fetchall()}
-            except mysql.connector.Error as err:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT nome, cpf FROM cad_mot")
+                    return {nome: cpf for nome, cpf in cursor.fetchall()}
+            except pymysql.Error as err:
                 st.error(f"Erro ao buscar motoristas: {err}")
             finally:
                 conn.close()
@@ -62,10 +64,10 @@ def main(form_key_suffix=""):
         conn = conectar_banco()
         if conn:
             try:
-                cursor = conn.cursor()
-                cursor.execute("SELECT placa, perfil, proprietario FROM cad_vei")
-                return {placa: {'perfil': perfil, 'proprietario': proprietario} for placa, perfil, proprietario in cursor.fetchall()}
-            except mysql.connector.Error as err:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT placa, perfil, proprietario FROM cad_vei")
+                    return {placa: {'perfil': perfil, 'proprietario': proprietario} for placa, perfil, proprietario in cursor.fetchall()}
+            except pymysql.Error as err:
                 st.error(f"Erro ao buscar placas: {err}")
             finally:
                 conn.close()
@@ -75,10 +77,10 @@ def main(form_key_suffix=""):
         conn = conectar_banco()
         if conn:
             try:
-                cursor = conn.cursor()
-                cursor.execute("SELECT DISTINCT cidade FROM cad_rota")
-                return [cidade[0] for cidade in cursor.fetchall()]
-            except mysql.connector.Error as err:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT DISTINCT cidade FROM cad_rota")
+                    return [cidade[0] for cidade in cursor.fetchall()]
+            except pymysql.Error as err:
                 st.error(f"Erro ao buscar cidades: {err}")
             finally:
                 conn.close()
@@ -90,17 +92,16 @@ def main(form_key_suffix=""):
             return False
         
         try:
-            cursor = conn.cursor()
-            query = "DELETE FROM tela_inicial WHERE id = %s"
-            cursor.execute(query, (id_registro,))
-            conn.commit()
-            return cursor.rowcount > 0
-        except mysql.connector.Error as err:
+            with conn.cursor() as cursor:
+                query = "DELETE FROM tela_inicial WHERE id = %s"
+                cursor.execute(query, (id_registro,))
+                conn.commit()
+                return cursor.rowcount > 0
+        except pymysql.Error as err:
             st.error(f"Erro ao excluir registro: {err}")
             return False
         finally:
-            if conn.is_connected():
-                cursor.close()
+            if conn.open:
                 conn.close()
     
     def salvar_dados(dados):
@@ -109,72 +110,55 @@ def main(form_key_suffix=""):
             return False
     
         try:
-            cursor = conn.cursor()
-            
-            campos = [
-                'data', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
-                'placa', 'perfil_vei', 'proprietario_vei',
-                'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1', 'filial'
-            ]
-            
-            valores = (
-                dados['data_mysql'],
-                dados['cliente'],
-                dados['cod_cliente'],
-                dados['motorista'],
-                dados['cpf_motorista'],
-                dados['placa'],
-                dados['perfil_vei'],
-                dados['proprietario_vei'],
-                dados['id_carga_cvia'],
-                dados['cubagem'],
-                dados['cid_1'],
-                dados['mod_1'],
-                dados['filial']
-            )
+            with conn.cursor() as cursor:
+                campos = [
+                    'data', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
+                    'placa', 'perfil_vei', 'proprietario_vei',
+                    'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1', 'filial'
+                ]
+                
+                valores = (
+                    dados['data_mysql'],
+                    dados['cliente'],
+                    dados['cod_cliente'],
+                    dados['motorista'],
+                    dados['cpf_motorista'],
+                    dados['placa'],
+                    dados['perfil_vei'],
+                    dados['proprietario_vei'],
+                    dados['id_carga_cvia'],
+                    dados['cubagem'],
+                    dados['cid_1'],
+                    dados['mod_1'],
+                    dados['filial']
+                )
     
-            if dados['id_registro']:
-                query = f"UPDATE tela_inicial SET {', '.join([f'{campo} = %s' for campo in campos])} WHERE id = %s"
-                cursor.execute(query, valores + (dados['id_registro'],))
-            else:
-                query = f"INSERT INTO tela_inicial ({', '.join(campos)}) VALUES ({', '.join(['%s'] * len(campos))})"
-                cursor.execute(query, valores)
+                if dados['id_registro']:
+                    query = f"UPDATE tela_inicial SET {', '.join([f'{campo} = %s' for campo in campos])} WHERE id = %s"
+                    cursor.execute(query, valores + (dados['id_registro'],))
+                else:
+                    query = f"INSERT INTO tela_inicial ({', '.join(campos)}) VALUES ({', '.join(['%s'] * len(campos))})"
+                    cursor.execute(query, valores)
     
-            conn.commit()
-            return True
-        except mysql.connector.Error as err:
+                conn.commit()
+                return True
+        except pymysql.Error as err:
             st.error(f"Erro ao salvar dados: {err}")
             return False
         finally:
-            if conn.is_connected():
-                cursor.close()
+            if conn.open:
                 conn.close()
     
     # Página do formulário
     def mostrar_formulario(suffix):
         st.title("Novo Cadastro de Carregamento")
         
-        # Seção de exclusão de registro
-        with st.expander("Excluir Registro Existente"):
-            id_para_excluir = st.text_input(
-                "ID do registro a ser excluído:",
-                key=f"id_excluir_{suffix}"
-            )
-            
-            if st.button("Excluir Registro", key=f"btn_excluir_{suffix}"):
-                if id_para_excluir:
-                    if excluir_registro(id_para_excluir):
-                        st.success(f"✅ Registro ID {id_para_excluir} excluído com sucesso!")
-                    else:
-                        st.error("❌ Falha ao excluir registro ou registro não encontrado")
-                else:
-                    st.warning("⚠️ Por favor, informe o ID do registro a ser excluído")
-        
         clientes = buscar_clientes()
         motoristas = buscar_motoristas()
         placas_info = buscar_placas()
         cidades = buscar_cidades()
         
+        # Formulário principal
         with st.form(key=f"form_producao_{suffix}", clear_on_submit=True):
             id_registro = st.text_input(
                 "ID (para edição, deixe vazio para novo cadastro)",
@@ -293,6 +277,25 @@ def main(form_key_suffix=""):
                         st.rerun()
                     except ValueError:
                         st.error("Formato de data inválido. Use dd/mm/aaaa")
+
+        # Seção de exclusão de registro (fora do formulário)
+        st.markdown("---")
+        with st.expander("Excluir Registro Existente"):
+            id_para_excluir = st.text_input(
+                "ID do registro a ser excluído:",
+                key=f"id_excluir_{suffix}"
+            )
+            
+            if st.button("Excluir Registro", key=f"btn_excluir_{suffix}"):
+                if id_para_excluir:
+                    if excluir_registro(id_para_excluir):
+                        st.success(f"✅ Registro ID {id_para_excluir} excluído com sucesso!")
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error("❌ Falha ao excluir registro ou registro não encontrado")
+                else:
+                    st.warning("⚠️ Por favor, informe o ID do registro a ser excluído")
 
     # Página de progresso
     def mostrar_progresso():
