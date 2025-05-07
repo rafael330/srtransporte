@@ -95,7 +95,7 @@ def main(form_key_suffix=""):
             campos = [
                 'data', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
                 'placa', 'perfil_vei', 'proprietario_vei',
-                'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1'
+                'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1', 'filial'
             ]
             
             valores = (
@@ -110,7 +110,8 @@ def main(form_key_suffix=""):
                 dados['id_carga_cvia'],
                 dados['cubagem'],
                 dados['cid_1'],
-                dados['mod_1']
+                dados['mod_1'],
+                dados['filial']
             )
     
             if dados['id_registro']:
@@ -193,10 +194,17 @@ def main(form_key_suffix=""):
                     key=f"proprietario_vei_{suffix}"
                 )
 
-            id_carga_cvia = st.text_input(
-                "ID carga / CVia",
-                key=f"id_carga_cvia_{suffix}"
-            )
+            col1, col2 = st.columns(2)
+            with col1:
+                id_carga_cvia = st.text_input(
+                    "ID carga / CVia",
+                    key=f"id_carga_cvia_{suffix}"
+                )
+            with col2:
+                filial = st.text_input(
+                    "Filial",
+                    key=f"filial_{suffix}"
+                )
 
             data = st.text_input(
                 "Data* (Formato: dd/mm/aaaa)",
@@ -222,7 +230,6 @@ def main(form_key_suffix=""):
                 key=f"cubagem_{suffix}"
             )
 
-            # CORREÇÃO: Form submit button sem parâmetro key
             submitted = st.form_submit_button("Enviar")
             if submitted:
                 if not all([cliente, motorista, placa, data, cid_1]):
@@ -242,7 +249,8 @@ def main(form_key_suffix=""):
                             'id_carga_cvia': id_carga_cvia,
                             'cubagem': cubagem,
                             'cid_1': cid_1,
-                            'mod_1': mod_1
+                            'mod_1': mod_1,
+                            'filial': filial
                         }
                         
                         st.session_state.dados = dados
