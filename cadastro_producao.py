@@ -159,6 +159,7 @@ def main(form_key_suffix=""):
         placas_info = buscar_placas()
         cidades = buscar_cidades()
         
+        # Formulário principal (sem o botão de exclusão)
         with st.form(key=f"form_producao_{suffix}", clear_on_submit=True):
             id_registro = st.text_input(
                 "ID (para edição, deixe vazio para novo cadastro)",
@@ -278,24 +279,24 @@ def main(form_key_suffix=""):
                     except ValueError:
                         st.error("Formato de data inválido. Use dd/mm/aaaa")
 
-            # Seção de exclusão de registro - AGORA NO FINAL DO FORMULÁRIO
-            st.markdown("---")  # Linha divisória
-            with st.expander("🔴 Excluir Registro Existente"):
-                id_para_excluir = st.text_input(
-                    "ID do registro a ser excluído:",
-                    key=f"id_excluir_{suffix}"
-                )
-                
-                if st.button("Excluir Registro", key=f"btn_excluir_{suffix}"):
-                    if id_para_excluir:
-                        if excluir_registro(id_para_excluir):
-                            st.success(f"✅ Registro ID {id_para_excluir} excluído com sucesso!")
-                            time.sleep(2)
-                            st.rerun()
-                        else:
-                            st.error("❌ Falha ao excluir registro ou registro não encontrado")
+        # Seção de exclusão de registro - AGORA FORA DO FORMULÁRIO
+        st.markdown("---")  # Linha divisória
+        with st.expander("🔴 Excluir Registro Existente"):
+            id_para_excluir = st.text_input(
+                "ID do registro a ser excluído:",
+                key=f"id_excluir_{suffix}"
+            )
+            
+            if st.button("Excluir Registro", key=f"btn_excluir_{suffix}"):
+                if id_para_excluir:
+                    if excluir_registro(id_para_excluir):
+                        st.success(f"✅ Registro ID {id_para_excluir} excluído com sucesso!")
+                        time.sleep(2)
+                        st.rerun()
                     else:
-                        st.warning("⚠️ Por favor, informe o ID do registro a ser excluído")
+                        st.error("❌ Falha ao excluir registro ou registro não encontrado")
+                else:
+                    st.warning("⚠️ Por favor, informe o ID do registro a ser excluído")
 
     # Página de progresso
     def mostrar_progresso():
