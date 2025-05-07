@@ -84,6 +84,25 @@ def main(form_key_suffix=""):
                 conn.close()
         return []
     
+    def excluir_registro(id_registro):
+        conn = conectar_banco()
+        if not conn:
+            return False
+        
+        try:
+            cursor = conn.cursor()
+            query = "DELETE FROM tela_inicial WHERE id = %s"
+            cursor.execute(query, (id_registro,))
+            conn.commit()
+            return cursor.rowcount > 0
+        except mysql.connector.Error as err:
+            st.error(f"Erro ao excluir registro: {err}")
+            return False
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+    
     def salvar_dados(dados):
         conn = conectar_banco()
         if not conn:
@@ -134,6 +153,22 @@ def main(form_key_suffix=""):
     # Página do formulário
     def mostrar_formulario(suffix):
         st.title("Novo Cadastro de Carregamento")
+        
+        # Seção de exclusão de registro
+        with st.expander("🔴 Excluir Registro Existente"):
+            id_para_excluir = st.text_input(
+                "ID do registro a ser excluído:",
+                key=f"id_excluir_{suffix}"
+            )
+            
+            if st.button("Excluir Registro", key=f"btn_excluir_{suffix}"):
+                if id_para_excluir:
+                    if excluir_registro(id_para_excluir):
+                        st.success(f"✅ Registro ID {id_para_excluir} excluído com sucesso!")
+                    else:
+                        st.error("❌ Falha ao excluir registro ou registro não encontrado")
+                else:
+                    st.warning("⚠️ Por favor, informe o ID do registro a ser excluído")
         
         clientes = buscar_clientes()
         motoristas = buscar_motoristas()
