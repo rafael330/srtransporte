@@ -1,5 +1,6 @@
 import streamlit as st
 import mysql.connector
+from decimal import Decimal
 
 def main(form_key_suffix=""):
     # CSS para remover a borda do formulário
@@ -24,6 +25,17 @@ def main(form_key_suffix=""):
             return conn
         except mysql.connector.Error as err:
             st.error(f"Erro ao conectar ao banco de dados: {err}")
+            return None
+    
+    def formatar_valor(valor):
+        """Converte valores com vírgula para ponto e remove formatação"""
+        if not valor:
+            return None
+        try:
+            # Remove pontos de milhar e substitui vírgula por ponto
+            valor = str(valor).replace('.', '').replace(',', '.')
+            return Decimal(valor)
+        except:
             return None
     
     def cadastro_fiscal(suffix):
@@ -115,15 +127,17 @@ def main(form_key_suffix=""):
             col1, col2 = st.columns(2)
             with col1:
                 valor_carga = st.text_input(
-                    "Valor da Carga", 
+                    "Valor da Carga (R$)", 
                     key=f'valor_carga_fiscal_{suffix}', 
-                    value=st.session_state[f'valor_carga_fiscal_{suffix}']
+                    value=st.session_state[f'valor_carga_fiscal_{suffix}'],
+                    help="Use vírgula para decimais (ex: 1.234,56)"
                 )
             with col2:
                 valor_frete = st.text_input(
-                    "Valor do Frete", 
+                    "Valor do Frete (R$)", 
                     key=f'valor_frete_fiscal_{suffix}', 
-                    value=st.session_state[f'valor_frete_fiscal_{suffix}']
+                    value=st.session_state[f'valor_frete_fiscal_{suffix}'],
+                    help="Use vírgula para decimais (ex: 1.234,56)"
                 )
             
             # Novos campos adicionais
@@ -133,25 +147,29 @@ def main(form_key_suffix=""):
                 icms = st.text_input(
                     "ICMS (R$)",
                     key=f'icms_{suffix}',
-                    value=st.session_state[f'icms_{suffix}']
+                    value=st.session_state[f'icms_{suffix}'],
+                    help="Use vírgula para decimais (ex: 12,34)"
                 )
             with col2:
                 gris = st.text_input(
                     "GRIS (R$)",
                     key=f'gris_{suffix}',
-                    value=st.session_state[f'gris_{suffix}']
+                    value=st.session_state[f'gris_{suffix}'],
+                    help="Use vírgula para decimais (ex: 1,23)"
                 )
             with col3:
                 adv = st.text_input(
                     "ADV (R$)",
                     key=f'adv_{suffix}',
-                    value=st.session_state[f'adv_{suffix}']
+                    value=st.session_state[f'adv_{suffix}'],
+                    help="Use vírgula para decimais (ex: 2,50)"
                 )
             with col4:
                 seguro = st.text_input(
                     "Seguro (R$)",
                     key=f'seguro_{suffix}',
-                    value=st.session_state[f'seguro_{suffix}']
+                    value=st.session_state[f'seguro_{suffix}'],
+                    help="Use vírgula para decimais (ex: 123,45)"
                 )
     
             # Botão de submit dentro do form
@@ -163,143 +181,165 @@ def main(form_key_suffix=""):
                     if not id_registro or not st.session_state[f'minuta_ot_fiscal_{suffix}']:
                         st.error("Os campos ID e Minuta/OT são obrigatórios")
                     else:
-                        # Prepara dados para salvar
-                        dados = {
-                            'id': id_registro,
-                            'minuta_ot': st.session_state[f'minuta_ot_fiscal_{suffix}'],
-                            'cliente': cliente_selecionado,
-                            'cod_cliente': st.session_state[f'cod_cliente_fiscal_{suffix}'],
-                            'valor_carga': valor_carga,
-                            'valor_frete': valor_frete,
-                            'icms': icms,
-                            'gris': gris,
-                            'adv': adv,
-                            'seguro': seguro
-                        }
+                        # Formata os valores com vírgula
+                        valor_carga_formatado = formatar_valor(valor_carga)
+                        valor_frete_formatado = formatar_valor(valor_frete)
+                        icms_formatado = formatar_valor(icms)
+                        gris_formatado = formatar_valor(gris)
+                        adv_formatado = formatar_valor(adv)
+                        seguro_formatado = formatar_valor(seguro)
+                        
+                        # Verifica se os valores são válidos
+                        if valor_carga and valor_carga_formatado is None:
+                            st.error("Valor da Carga inválido")
+                        elif valor_frete and valor_frete_formatado is None:
+                            st.error("Valor do Frete inválido")
+                        elif icms and icms_formatado is None:
+                            st.error("ICMS inválido")
+                        elif gris and gris_formatado is None:
+                            st.error("GRIS inválido")
+                        elif adv and adv_formatado is None:
+                            st.error("ADV inválido")
+                        elif seguro and seguro_formatado is None:
+                            st.error("Seguro inválido")
+                        else:
+                            # Prepara dados para salvar
+                            dados = {
+                                'id': id_registro,
+                                'minuta_ot': st.session_state[f'minuta_ot_fiscal_{suffix}'],
+                                'cliente': cliente_selecionado,
+                                'cod_cliente': st.session_state[f'cod_cliente_fiscal_{suffix}'],
+                                'valor_carga': valor_carga_formatado,
+                                'valor_frete': valor_frete_formatado,
+                                'icms': icms_formatado,
+                                'gris': gris_formatado,
+                                'adv': adv_formatado,
+                                'seguro': seguro_formatado
+                            }
     
-                        # Conecta ao banco e salva
-                        conn = conectar_banco()
-                        if conn:
-                            try:
-                                cursor = conn.cursor()
-                                
-                                # Verifica se a tabela tem os novos campos
-                                cursor.execute("SHOW COLUMNS FROM tela_fis LIKE 'icms'")
-                                tem_novos_campos = cursor.fetchone()
-                                
-                                # Verifica se é atualização ou inserção
-                                cursor.execute("SELECT id FROM tela_fis WHERE id = %s", (id_registro,))
-                                existe = cursor.fetchone()
-                                
-                                if existe:
-                                    # Atualiza registro existente
-                                    if tem_novos_campos:
-                                        query = """
-                                            UPDATE tela_fis SET
-                                                minuta_ot = %s,
-                                                cliente = %s,
-                                                cod_cliente = %s,
-                                                valor_carga = %s,
-                                                valor_frete = %s,
-                                                icms = %s,
-                                                gris = %s,
-                                                adv = %s,
-                                                seguro = %s
-                                            WHERE id = %s
-                                        """
-                                        cursor.execute(query, (
-                                            dados['minuta_ot'],
-                                            dados['cliente'],
-                                            dados['cod_cliente'],
-                                            dados['valor_carga'],
-                                            dados['valor_frete'],
-                                            dados['icms'],
-                                            dados['gris'],
-                                            dados['adv'],
-                                            dados['seguro'],
-                                            dados['id']
-                                        ))
+                            # Conecta ao banco e salva
+                            conn = conectar_banco()
+                            if conn:
+                                try:
+                                    cursor = conn.cursor()
+                                    
+                                    # Verifica se a tabela tem os novos campos
+                                    cursor.execute("SHOW COLUMNS FROM tela_fis LIKE 'icms'")
+                                    tem_novos_campos = cursor.fetchone()
+                                    
+                                    # Verifica se é atualização ou inserção
+                                    cursor.execute("SELECT id FROM tela_fis WHERE id = %s", (id_registro,))
+                                    existe = cursor.fetchone()
+                                    
+                                    if existe:
+                                        # Atualiza registro existente
+                                        if tem_novos_campos:
+                                            query = """
+                                                UPDATE tela_fis SET
+                                                    minuta_ot = %s,
+                                                    cliente = %s,
+                                                    cod_cliente = %s,
+                                                    valor_carga = %s,
+                                                    valor_frete = %s,
+                                                    icms = %s,
+                                                    gris = %s,
+                                                    adv = %s,
+                                                    seguro = %s
+                                                WHERE id = %s
+                                            """
+                                            cursor.execute(query, (
+                                                dados['minuta_ot'],
+                                                dados['cliente'],
+                                                dados['cod_cliente'],
+                                                dados['valor_carga'],
+                                                dados['valor_frete'],
+                                                dados['icms'],
+                                                dados['gris'],
+                                                dados['adv'],
+                                                dados['seguro'],
+                                                dados['id']
+                                            ))
+                                        else:
+                                            query = """
+                                                UPDATE tela_fis SET
+                                                    minuta_ot = %s,
+                                                    cliente = %s,
+                                                    cod_cliente = %s,
+                                                    valor_carga = %s,
+                                                    valor_frete = %s
+                                                WHERE id = %s
+                                            """
+                                            cursor.execute(query, (
+                                                dados['minuta_ot'],
+                                                dados['cliente'],
+                                                dados['cod_cliente'],
+                                                dados['valor_carga'],
+                                                dados['valor_frete'],
+                                                dados['id']
+                                            ))
                                     else:
-                                        query = """
-                                            UPDATE tela_fis SET
-                                                minuta_ot = %s,
-                                                cliente = %s,
-                                                cod_cliente = %s,
-                                                valor_carga = %s,
-                                                valor_frete = %s
-                                            WHERE id = %s
-                                        """
-                                        cursor.execute(query, (
-                                            dados['minuta_ot'],
-                                            dados['cliente'],
-                                            dados['cod_cliente'],
-                                            dados['valor_carga'],
-                                            dados['valor_frete'],
-                                            dados['id']
-                                        ))
-                                else:
-                                    if tem_novos_campos:
-                                        query = """
-                                            INSERT INTO tela_fis (
-                                                id, minuta_ot, cliente, cod_cliente, 
-                                                valor_carga, valor_frete, icms, gris, adv, seguro
-                                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                                        """
-                                        cursor.execute(query, (
-                                            dados['id'],
-                                            dados['minuta_ot'],
-                                            dados['cliente'],
-                                            dados['cod_cliente'],
-                                            dados['valor_carga'],
-                                            dados['valor_frete'],
-                                            dados['icms'],
-                                            dados['gris'],
-                                            dados['adv'],
-                                            dados['seguro']
-                                        ))
-                                    else:
-                                        query = """
-                                            INSERT INTO tela_fis (
-                                                id, minuta_ot, cliente, cod_cliente, valor_carga, valor_frete
-                                            ) VALUES (%s, %s, %s, %s, %s, %s)
-                                        """
-                                        cursor.execute(query, (
-                                            dados['id'],
-                                            dados['minuta_ot'],
-                                            dados['cliente'],
-                                            dados['cod_cliente'],
-                                            dados['valor_carga'],
-                                            dados['valor_frete']
-                                        ))
-                                
-                                conn.commit()
-                                st.success("Dados salvos com sucesso!")
-                                
-                                # Limpa apenas os campos do formulário
-                                keys_to_clear = [f'minuta_ot_fiscal_{suffix}',
-                                                f'cliente_fiscal_{suffix}',
-                                                f'cod_cliente_fiscal_{suffix}',
-                                                f'valor_carga_fiscal_{suffix}',
-                                                f'valor_frete_fiscal_{suffix}',
-                                                f'icms_{suffix}',
-                                                f'gris_{suffix}',
-                                                f'adv_{suffix}',
-                                                f'seguro_{suffix}',
-                                                f'id_fiscal_{suffix}',
-                                                f'last_cliente_{suffix}']
-                                for key in keys_to_clear:
-                                    if key in st.session_state:
-                                        del st.session_state[key]
-                                
-                                st.rerun()
-                                
-                            except mysql.connector.Error as err:
-                                conn.rollback()
-                                st.error(f"Erro ao salvar dados: {err}")
-                            finally:
-                                if conn.is_connected():
-                                    cursor.close()
-                                    conn.close()
+                                        if tem_novos_campos:
+                                            query = """
+                                                INSERT INTO tela_fis (
+                                                    id, minuta_ot, cliente, cod_cliente, 
+                                                    valor_carga, valor_frete, icms, gris, adv, seguro
+                                                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                            """
+                                            cursor.execute(query, (
+                                                dados['id'],
+                                                dados['minuta_ot'],
+                                                dados['cliente'],
+                                                dados['cod_cliente'],
+                                                dados['valor_carga'],
+                                                dados['valor_frete'],
+                                                dados['icms'],
+                                                dados['gris'],
+                                                dados['adv'],
+                                                dados['seguro']
+                                            ))
+                                        else:
+                                            query = """
+                                                INSERT INTO tela_fis (
+                                                    id, minuta_ot, cliente, cod_cliente, valor_carga, valor_frete
+                                                ) VALUES (%s, %s, %s, %s, %s, %s)
+                                            """
+                                            cursor.execute(query, (
+                                                dados['id'],
+                                                dados['minuta_ot'],
+                                                dados['cliente'],
+                                                dados['cod_cliente'],
+                                                dados['valor_carga'],
+                                                dados['valor_frete']
+                                            ))
+                                    
+                                    conn.commit()
+                                    st.success("Dados salvos com sucesso!")
+                                    
+                                    # Limpa apenas os campos do formulário
+                                    keys_to_clear = [f'minuta_ot_fiscal_{suffix}',
+                                                    f'cliente_fiscal_{suffix}',
+                                                    f'cod_cliente_fiscal_{suffix}',
+                                                    f'valor_carga_fiscal_{suffix}',
+                                                    f'valor_frete_fiscal_{suffix}',
+                                                    f'icms_{suffix}',
+                                                    f'gris_{suffix}',
+                                                    f'adv_{suffix}',
+                                                    f'seguro_{suffix}',
+                                                    f'id_fiscal_{suffix}',
+                                                    f'last_cliente_{suffix}']
+                                    for key in keys_to_clear:
+                                        if key in st.session_state:
+                                            del st.session_state[key]
+                                    
+                                    st.rerun()
+                                    
+                                except mysql.connector.Error as err:
+                                    conn.rollback()
+                                    st.error(f"Erro ao salvar dados: {err}")
+                                finally:
+                                    if conn.is_connected():
+                                        cursor.close()
+                                        conn.close()
     
     cadastro_fiscal(form_key_suffix)
 
