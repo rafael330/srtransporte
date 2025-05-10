@@ -1,6 +1,7 @@
 import streamlit as st
 import mysql.connector
 from datetime import datetime
+from decimal import Decimal
 
 def main(form_key_suffix=""):
     def conectar_banco():
@@ -15,6 +16,17 @@ def main(form_key_suffix=""):
             return conn
         except mysql.connector.Error as err:
             st.error(f"Erro ao conectar ao banco de dados: {err}")
+            return None
+    
+    def formatar_valor(valor_str):
+        """Converte valores com vírgula para formato decimal"""
+        if not valor_str:
+            return None
+        try:
+            # Remove pontos de milhar e substitui vírgula por ponto
+            valor_str = valor_str.replace('.', '').replace(',', '.')
+            return Decimal(valor_str)
+        except:
             return None
         
     def salvar_dados(tabela, campos, valores, id_registro):
@@ -169,9 +181,10 @@ def main(form_key_suffix=""):
                 
                 # Campo Valor
                 valor = st.text_input(
-                    "Valor*",
+                    "Valor* (R$)",
                     value=st.session_state[f'valor_{suffix}'],
-                    key=f"input_valor_{suffix}"
+                    key=f"input_valor_{suffix}",
+                    help="Use vírgula para decimais (ex: 1.234,56)"
                 )
             
             # Botão de submit dentro do form
@@ -186,6 +199,12 @@ def main(form_key_suffix=""):
                         # Valida formato da data
                         datetime.strptime(data, "%d/%m/%Y")
                         
+                        # Formata o valor com vírgula
+                        valor_formatado = formatar_valor(valor)
+                        if valor_formatado is None:
+                            st.error("Valor inválido. Use vírgula para decimais (ex: 1.234,56)")
+                            return
+                        
                         # Atualiza session_state
                         st.session_state[f'id_frete_extra_{suffix}'] = id_registro
                         st.session_state[f'cliente_{suffix}'] = cliente
@@ -197,10 +216,13 @@ def main(form_key_suffix=""):
                         
                         # Prepara dados para salvar
                         campos = ['cliente', 'data', 'id_carga', 'cidade', 'entrega_final', 'valor']
-                        valores = (cliente, data, id_carga, cidade, entrega_final, valor)
+                        valores = (cliente, data, id_carga, cidade, entrega_final, valor_formatado)
                         salvar_dados('cad_frete_extra', campos, valores, id_registro)
-                except ValueError:
-                    st.error("Formato de data inválido. Use dd/mm/aaaa")
+                except ValueError as e:
+                    if "time data" in str(e):
+                        st.error("Formato de data inválido. Use dd/mm/aaaa")
+                    else:
+                        st.error(f"Erro ao processar dados: {str(e)}")
     
     cadastro_frete_extra(form_key_suffix)
 
