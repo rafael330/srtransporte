@@ -36,6 +36,10 @@ def main(form_key_suffix=""):
             f'cod_cliente_fiscal_{suffix}': "",
             f'valor_carga_fiscal_{suffix}': "",
             f'valor_frete_fiscal_{suffix}': "",
+            f'icms_{suffix}': "",
+            f'gris_{suffix}': "",
+            f'adv_{suffix}': "",
+            f'seguro_{suffix}': "",
             f'id_fiscal_{suffix}': "",
             f'last_cliente_{suffix}': ""
         }
@@ -107,7 +111,7 @@ def main(form_key_suffix=""):
                 disabled=True
             )
     
-            # Campos de valores
+            # Campos de valores principais
             col1, col2 = st.columns(2)
             with col1:
                 valor_carga = st.text_input(
@@ -120,6 +124,34 @@ def main(form_key_suffix=""):
                     "Valor do Frete", 
                     key=f'valor_frete_fiscal_{suffix}', 
                     value=st.session_state[f'valor_frete_fiscal_{suffix}']
+                )
+            
+            # Novos campos adicionais
+            st.subheader("Tributos e Adicionais")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                icms = st.text_input(
+                    "ICMS (R$)",
+                    key=f'icms_{suffix}',
+                    value=st.session_state[f'icms_{suffix}']
+                )
+            with col2:
+                gris = st.text_input(
+                    "GRIS (R$)",
+                    key=f'gris_{suffix}',
+                    value=st.session_state[f'gris_{suffix}']
+                )
+            with col3:
+                adv = st.text_input(
+                    "ADV (R$)",
+                    key=f'adv_{suffix}',
+                    value=st.session_state[f'adv_{suffix}']
+                )
+            with col4:
+                seguro = st.text_input(
+                    "Seguro (R$)",
+                    key=f'seguro_{suffix}',
+                    value=st.session_state[f'seguro_{suffix}']
                 )
     
             # Botão de submit dentro do form
@@ -138,7 +170,11 @@ def main(form_key_suffix=""):
                             'cliente': cliente_selecionado,
                             'cod_cliente': st.session_state[f'cod_cliente_fiscal_{suffix}'],
                             'valor_carga': valor_carga,
-                            'valor_frete': valor_frete
+                            'valor_frete': valor_frete,
+                            'icms': icms,
+                            'gris': gris,
+                            'adv': adv,
+                            'seguro': seguro
                         }
     
                         # Conecta ao banco e salva
@@ -147,44 +183,94 @@ def main(form_key_suffix=""):
                             try:
                                 cursor = conn.cursor()
                                 
+                                # Verifica se a tabela tem os novos campos
+                                cursor.execute("SHOW COLUMNS FROM tela_fis LIKE 'icms'")
+                                tem_novos_campos = cursor.fetchone()
+                                
                                 # Verifica se é atualização ou inserção
                                 cursor.execute("SELECT id FROM tela_fis WHERE id = %s", (id_registro,))
                                 existe = cursor.fetchone()
                                 
                                 if existe:
                                     # Atualiza registro existente
-                                    query = """
-                                        UPDATE tela_fis SET
-                                            minuta_ot = %s,
-                                            cliente = %s,
-                                            cod_cliente = %s,
-                                            valor_carga = %s,
-                                            valor_frete = %s
-                                        WHERE id = %s
-                                    """
-                                    cursor.execute(query, (
-                                        dados['minuta_ot'],
-                                        dados['cliente'],
-                                        dados['cod_cliente'],
-                                        dados['valor_carga'],
-                                        dados['valor_frete'],
-                                        dados['id']
-                                    ))
+                                    if tem_novos_campos:
+                                        query = """
+                                            UPDATE tela_fis SET
+                                                minuta_ot = %s,
+                                                cliente = %s,
+                                                cod_cliente = %s,
+                                                valor_carga = %s,
+                                                valor_frete = %s,
+                                                icms = %s,
+                                                gris = %s,
+                                                adv = %s,
+                                                seguro = %s
+                                            WHERE id = %s
+                                        """
+                                        cursor.execute(query, (
+                                            dados['minuta_ot'],
+                                            dados['cliente'],
+                                            dados['cod_cliente'],
+                                            dados['valor_carga'],
+                                            dados['valor_frete'],
+                                            dados['icms'],
+                                            dados['gris'],
+                                            dados['adv'],
+                                            dados['seguro'],
+                                            dados['id']
+                                        ))
+                                    else:
+                                        query = """
+                                            UPDATE tela_fis SET
+                                                minuta_ot = %s,
+                                                cliente = %s,
+                                                cod_cliente = %s,
+                                                valor_carga = %s,
+                                                valor_frete = %s
+                                            WHERE id = %s
+                                        """
+                                        cursor.execute(query, (
+                                            dados['minuta_ot'],
+                                            dados['cliente'],
+                                            dados['cod_cliente'],
+                                            dados['valor_carga'],
+                                            dados['valor_frete'],
+                                            dados['id']
+                                        ))
                                 else:
-                                    # Insere novo registro
-                                    query = """
-                                        INSERT INTO tela_fis (
-                                            id, minuta_ot, cliente, cod_cliente, valor_carga, valor_frete
-                                        ) VALUES (%s, %s, %s, %s, %s, %s)
-                                    """
-                                    cursor.execute(query, (
-                                        dados['id'],
-                                        dados['minuta_ot'],
-                                        dados['cliente'],
-                                        dados['cod_cliente'],
-                                        dados['valor_carga'],
-                                        dados['valor_frete']
-                                    ))
+                                    if tem_novos_campos:
+                                        query = """
+                                            INSERT INTO tela_fis (
+                                                id, minuta_ot, cliente, cod_cliente, 
+                                                valor_carga, valor_frete, icms, gris, adv, seguro
+                                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                        """
+                                        cursor.execute(query, (
+                                            dados['id'],
+                                            dados['minuta_ot'],
+                                            dados['cliente'],
+                                            dados['cod_cliente'],
+                                            dados['valor_carga'],
+                                            dados['valor_frete'],
+                                            dados['icms'],
+                                            dados['gris'],
+                                            dados['adv'],
+                                            dados['seguro']
+                                        ))
+                                    else:
+                                        query = """
+                                            INSERT INTO tela_fis (
+                                                id, minuta_ot, cliente, cod_cliente, valor_carga, valor_frete
+                                            ) VALUES (%s, %s, %s, %s, %s, %s)
+                                        """
+                                        cursor.execute(query, (
+                                            dados['id'],
+                                            dados['minuta_ot'],
+                                            dados['cliente'],
+                                            dados['cod_cliente'],
+                                            dados['valor_carga'],
+                                            dados['valor_frete']
+                                        ))
                                 
                                 conn.commit()
                                 st.success("Dados salvos com sucesso!")
@@ -195,6 +281,10 @@ def main(form_key_suffix=""):
                                                 f'cod_cliente_fiscal_{suffix}',
                                                 f'valor_carga_fiscal_{suffix}',
                                                 f'valor_frete_fiscal_{suffix}',
+                                                f'icms_{suffix}',
+                                                f'gris_{suffix}',
+                                                f'adv_{suffix}',
+                                                f'seguro_{suffix}',
                                                 f'id_fiscal_{suffix}',
                                                 f'last_cliente_{suffix}']
                                 for key in keys_to_clear:
