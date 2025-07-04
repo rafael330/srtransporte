@@ -93,13 +93,14 @@ def main(form_key_suffix=""):
             cursor = conn.cursor()
             
             campos = [
-                'data', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
+                'data', 'hora', 'cliente', 'cod_cliente', 'motorista', 'cpf_motorista',
                 'placa', 'perfil_vei', 'proprietario_vei',
                 'id_carga_cvia', 'cubagem', 'cid_1', 'mod_1', 'filial'
             ]
             
             valores = (
                 dados['data_mysql'],
+                dados['hora_saida'],
                 dados['cliente'],
                 dados['cod_cliente'],
                 dados['motorista'],
@@ -206,10 +207,17 @@ def main(form_key_suffix=""):
                     key=f"filial_{suffix}"
                 )
 
-            data = st.text_input(
-                "Data* (Formato: dd/mm/aaaa)",
-                key=f"data_{suffix}"
-            )
+            col1, col2 = st.columns(2)
+            with col1:
+                data = st.text_input(
+                    "Data* (Formato: dd/mm/aaaa)",
+                    key=f"data_{suffix}"
+                )
+            with col2:
+                hora_saida = st.text_input(
+                    "Hora de saída* (Formato: HH:MM)",
+                    key=f"hora_saida_{suffix}"
+                )
 
             col1, col2 = st.columns(2)
             with col1:
@@ -232,13 +240,20 @@ def main(form_key_suffix=""):
 
             submitted = st.form_submit_button("Enviar")
             if submitted:
-                if not all([cliente, motorista, placa, data, cid_1]):
+                if not all([cliente, motorista, placa, data, cid_1, hora_saida]):
                     st.error("Preencha todos os campos obrigatórios (*)")
                 else:
                     try:
+                        # Validar e formatar a data
+                        data_obj = datetime.strptime(data, "%d/%m/%Y")
+                        
+                        # Validar e formatar a hora
+                        hora_obj = datetime.strptime(hora_saida, "%H:%M")
+                        
                         dados = {
                             'id_registro': id_registro if id_registro else None,
-                            'data_mysql': datetime.strptime(data, "%d/%m/%Y").strftime("%Y-%m-%d"),
+                            'data_mysql': data_obj.strftime("%Y-%m-%d"),
+                            'hora_saida': hora_obj.strftime("%H:%M:%S"),
                             'cliente': cliente,
                             'cod_cliente': clientes.get(cliente, ""),
                             'motorista': motorista,
@@ -256,8 +271,11 @@ def main(form_key_suffix=""):
                         st.session_state.dados = dados
                         st.session_state.pagina = 'progresso'
                         st.rerun()
-                    except ValueError:
-                        st.error("Formato de data inválido. Use dd/mm/aaaa")
+                    except ValueError as e:
+                        if "time data" in str(e):
+                            st.error("Formato de hora inválido. Use HH:MM")
+                        else:
+                            st.error("Formato de data inválido. Use dd/mm/aaaa")
 
     # Página de progresso
     def mostrar_progresso():
